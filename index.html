@@ -105,8 +105,6 @@ h3{font-family:var(--display);font-weight:800;font-size:20px;margin:6px 0 0;lett
   border:0;border-radius:999px;padding:14px 20px;background:var(--fg);color:var(--bg);font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:5}
 .overlay{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;
   padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
-.breath{width:180px;height:180px;border-radius:50%;background:var(--accent-soft);border:3px solid var(--accent);transform:scale(.6);transition:transform 4s ease-in-out}
-.breath.in{transform:scale(1)}
 .ovl-title{font-family:var(--display);font-weight:800;font-size:30px;margin:0}
 .ovl-sub{color:var(--muted);max-width:32ch;margin:0}
 .ovl-timer{font-family:var(--mono);font-size:20px;font-weight:700}
@@ -121,9 +119,26 @@ h3{font-family:var(--display);font-weight:800;font-size:20px;margin:6px 0 0;lett
 .ovl-reason{background:var(--accent-soft);border-radius:16px;padding:14px 16px;max-width:36ch;display:flex;flex-direction:column;gap:6px}
 .ovl-reason p{margin:0;font-weight:600}
 .overlay{overflow-y:auto}
-.overlay .breath{flex:none}
-@media (max-height:700px){.breath{width:130px;height:130px}}
-@media (prefers-reduced-motion: reduce){.breath,.ring-fg,.tabs button{transition:none}}
+.overlay{gap:18px}
+.modes{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.modes button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;color:var(--muted)}
+.modes button[aria-pressed="true"]{border-color:var(--accent);color:var(--fg);background:var(--accent-soft)}
+.modenote{font-size:12px;color:var(--muted);max-width:34ch;margin:-6px 0 0}
+.bstage{position:relative;width:min(250px,62vw);aspect-ratio:1;max-width:100%;flex:none;display:grid;place-items:center}
+@media (max-height:700px){.bstage{width:min(180px,50vw)}}
+.bstage svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.btrack{fill:none;stroke:var(--line);stroke-width:2}
+.barc{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round}
+.blob{position:absolute;inset:8%;border-radius:50%;will-change:transform,opacity}
+.blob.b3{background:var(--accent);opacity:.10}
+.blob.b2{background:var(--accent);opacity:.18}
+.blob.b1{background:radial-gradient(circle at 35% 30%,var(--accent-soft),var(--accent) 140%);box-shadow:0 0 40px -6px var(--accent)}
+.bcount{position:relative;font-family:var(--mono);font-weight:700;font-size:34px;color:var(--fg);font-variant-numeric:tabular-nums}
+.ovl-title{transition:opacity .35s ease}
+.ovl-title.fade{opacity:0}
+.sessbar{width:min(260px,70vw);height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.sessbar span{display:block;height:100%;width:0;background:var(--accent)}
+@media (prefers-reduced-motion: reduce){.ring-fg,.tabs button,.ovl-title{transition:none}}
 </style>
 </head>
 <body>
@@ -141,8 +156,17 @@ h3{font-family:var(--display);font-weight:800;font-size:20px;margin:6px 0 0;lett
 
 <div class="overlay" id="overlay" hidden>
   <p class="eyebrow" id="ovl-eyebrow">Craving-Modus</p>
-  <div class="breath" id="breath"></div>
-  <p class="ovl-title" id="ovl-phase">Einatmen</p>
+  <div class="modes" id="modes" role="group" aria-label="Atemtechnik">
+    <button data-m="calm">Ruhig 5–5</button><button data-m="sigh">Seufzer</button><button data-m="box">Box 4–4–4–4</button>
+  </div>
+  <p class="modenote" id="modenote"></p>
+  <div class="bstage" aria-hidden="true">
+    <div class="blob b3" id="b3"></div><div class="blob b2" id="b2"></div><div class="blob b1" id="b1"></div>
+    <svg viewBox="0 0 200 200"><circle class="btrack" cx="100" cy="100" r="97"/><circle class="barc" id="barc" cx="100" cy="100" r="97" stroke-dasharray="609.47" stroke-dashoffset="609.47"/></svg>
+    <span class="bcount" id="bcount"></span>
+  </div>
+  <p class="ovl-title" id="ovl-phase" aria-live="polite">Einatmen</p>
+  <div class="sessbar"><span id="sessbar"></span></div>
   <p class="ovl-timer" id="ovl-timer">3:00</p>
   <p class="ovl-sub" id="ovl-sub">Ein Craving ist eine Welle. Sie wird stärker und geht dann von allein wieder weg. Atme mit dem Kreis.</p>
   <div class="ovl-reason" id="ovl-reason" hidden><span class="eyebrow">Warum du aufgehört hast</span><p id="ovl-reason-text"></p></div>
@@ -335,25 +359,72 @@ function tick(){
 
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.k;ui.panel=null;ui.toast="";save();render()});
 
-/* Craving mode: 4s in, 4s out breathing for 3 minutes */
-let ov=null;
-$("#sos").onclick=()=>{
-  const o=$("#overlay");o.hidden=false;let left=180,phase=0;
-  $("#ovl-eyebrow").textContent=S.tab==="vape"?"Craving-Modus":"Durchhalte-Modus";
-  const br=$("#breath"),ph=$("#ovl-phase"),tm=$("#ovl-timer");
-  const step=()=>{phase^=1;br.classList.toggle("in",phase===1);ph.textContent=phase?"Einatmen":"Ausatmen"};
-  step();
-  const showR=S.tab==="vape"&&S.reasons.length>0;let ri=0;
-  $("#ovl-reason").hidden=!showR;
-  const showReason=()=>{if(showR){$("#ovl-reason-text").textContent=S.reasons[ri%S.reasons.length];ri++;}};
-  showReason();
-  clearInterval(ov);let t=0;
-  ov=setInterval(()=>{left--;t++;tm.textContent=Math.floor(left/60)+":"+pad(left%60);if(t%4===0)step();if(t%12===0)showReason();
-    if(left<=0){clearInterval(ov);ph.textContent="Welle vorbei";br.classList.remove("in");
-      $("#ovl-sub").textContent="Stark. Jetzt was trinken, kurz raus oder duschen.";}},1000);
-  tm.textContent="3:00";$("#ovl-sub").textContent="Ein Craving ist eine Welle. Sie wird stärker und geht dann von allein wieder weg. Atme mit dem Kreis.";
+/* Craving mode. Patterns:
+   calm: NHS "Breathing exercises for stress" – in 5, out 5, no hold (~6 breaths/min)
+   sigh: cyclic sighing (Balban et al. 2023, Stanford) – inhale, short second inhale, long exhale
+   box:  box breathing 4-4-4-4 with holds (also tested in Balban et al.) */
+const PATTERNS={
+  calm:{note:"Empfohlen vom NHS: 5 Sek. ein, 5 Sek. aus, ohne Luftanhalten. Ganz ruhig und gleichmäßig.",
+    ph:[["Einatmen",5,.55,1],["Ausatmen",5,1,.55]]},
+  sigh:{note:"Zyklisches Seufzen (Stanford-Studie 2023): durch die Nase einatmen, kurz nachziehen, lang durch den Mund aus.",
+    ph:[["Einatmen",2.5,.55,.88],["Nachziehen",1,.88,1],["Lang ausatmen",6.5,1,.55]]},
+  box:{note:"Box-Atmung mit Pausen: je 4 Sek. ein, halten, aus, halten. Nur wenn sich das Halten gut anfühlt.",
+    ph:[["Einatmen",4,.55,1],["Halten",4,1,1],["Ausatmen",4,1,.55],["Halten",4,.55,.55]]}
 };
-$("#ovl-close").onclick=()=>{clearInterval(ov);$("#overlay").hidden=true};
+const SESSION=180;
+const ease=x=>-(Math.cos(Math.PI*x)-1)/2;
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let raf=null,wake=null,sess=null;
+function setMode(m){
+  if(!PATTERNS[m])m="calm";S.breath=m;save();
+  document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m));
+  $("#modenote").textContent=PATTERNS[m].note;
+  if(sess){sess.cycleStart=performance.now();sess.lastPhase=-1;}
+}
+document.querySelectorAll("#modes button").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+function frame(now){
+  const P=PATTERNS[S.breath||"calm"].ph,cyc=P.reduce((a,x)=>a+x[1],0);
+  const el=(now-sess.t0)/1000,left=Math.max(0,SESSION-el);
+  let t=((now-sess.cycleStart)/1000)%cyc,i=0;
+  while(t>=P[i][1]){t-=P[i][1];i++;}
+  const [label,dur,a,b]=P[i],f=t/dur,sc=a+(b-a)*ease(f);
+  const hold=a===b,pulse=hold?1+Math.sin(now/260)*.012:1;
+  if(reduce){$("#b1").style.opacity=(.35+.65*(sc-.55)/.45).toFixed(3);}
+  else{
+    $("#b1").style.transform=`scale(${(sc*pulse).toFixed(4)})`;
+    $("#b2").style.transform=`scale(${(.12+sc*1.0).toFixed(4)})`;
+    $("#b3").style.transform=`scale(${(.2+sc*1.06).toFixed(4)})`;
+  }
+  $("#barc").setAttribute("stroke-dashoffset",(609.47*(1-f)).toFixed(1));
+  $("#bcount").textContent=Math.ceil(dur-t);
+  if(i!==sess.lastPhase){sess.lastPhase=i;const ph=$("#ovl-phase");ph.classList.add("fade");
+    setTimeout(()=>{ph.textContent=label;ph.classList.remove("fade")},180);
+    try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
+  $("#ovl-timer").textContent=Math.floor(Math.ceil(left)/60)+":"+pad(Math.ceil(left)%60);
+  $("#sessbar").style.width=(100*el/SESSION).toFixed(2)+"%";
+  const rb=Math.floor(el/12);if(rb!==sess.rb){sess.rb=rb;showReason();}
+  if(left<=0){endSession();return;}
+  raf=requestAnimationFrame(frame);
+}
+function showReason(){if(S.tab==="vape"&&S.reasons.length){$("#ovl-reason-text").textContent=S.reasons[sess.ri++%S.reasons.length];}}
+function endSession(){
+  cancelAnimationFrame(raf);
+  $("#ovl-phase").textContent="Welle vorbei";$("#bcount").textContent="✓";
+  $("#b1").style.transform="scale(.8)";$("#b2").style.transform="scale(.9)";$("#b3").style.transform="scale(1)";
+  $("#barc").setAttribute("stroke-dashoffset","0");$("#sessbar").style.width="100%";
+  $("#ovl-sub").textContent="Stark. Jetzt was trinken, kurz raus oder duschen.";
+}
+$("#sos").onclick=()=>{
+  $("#overlay").hidden=false;
+  $("#ovl-eyebrow").textContent=S.tab==="vape"?"Craving-Modus":"Durchhalte-Modus";
+  $("#ovl-sub").textContent="Ein Craving ist eine Welle. Sie wird stärker und geht dann von allein wieder weg. Atme mit dem Kreis.";
+  $("#ovl-reason").hidden=!(S.tab==="vape"&&S.reasons.length);
+  const now=performance.now();sess={t0:now,cycleStart:now,lastPhase:-1,rb:-1,ri:0};
+  setMode(S.breath||"calm");
+  try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>wake=w).catch(()=>{})}catch(e){}
+  cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
+};
+$("#ovl-close").onclick=()=>{cancelAnimationFrame(raf);sess=null;try{wake&&wake.release()}catch(e){}wake=null;$("#overlay").hidden=true};
 
 render();setInterval(tick,1000);
 })();
