@@ -108,6 +108,8 @@ label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4
 .next{font-size:14px;color:var(--muted)}
 .next b{color:var(--fg)}
 .since{font-size:13px;color:var(--muted)}
+.serie{font-size:14px;color:var(--muted)}
+.serie b{color:var(--fg)}
 .unset{display:flex;flex-direction:column;align-items:center;gap:12px;padding:32px 0 8px;text-align:center}
 .unset .card{width:100%;text-align:left}
 
@@ -129,6 +131,22 @@ label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4
 .news ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.4}
 .news .actions{margin-top:4px}
 .fact button{align-self:flex-start;border:0;background:none;padding:0;font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+
+/* Bilanz: clean days in the last 30 days, 90 days and since the start */
+.quote{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
+.qbig{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.qlab{font-size:14px;color:var(--muted);font-weight:600}
+.strip{display:grid;grid-template-columns:repeat(30,minmax(0,1fr));gap:3px}
+.strip i{display:block;height:22px;border-radius:4px;background:var(--accent)}
+.strip i.pre{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.strip i.slip{background:transparent;box-shadow:inset 0 0 0 2px var(--danger)}
+.strip i.today{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.striplab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:-4px}
+.sw.sq{width:10px;height:10px;border-radius:2px;background:var(--accent)}
+.sw.sq.slip{background:transparent;box-shadow:inset 0 0 0 2px var(--danger)}
+.qrow{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 0 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.qrow span:first-child{color:var(--muted)}
+.lapses .tag{box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
 
 /* reasons and plans */
 .reasons,.plans{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
@@ -452,12 +470,14 @@ const BLOCKS=[["Früh","5–9","früh morgens",5,9],["Vormittag","9–12","vormi
   ["Nachmittag","15–18","nachmittags",15,18],["Abend","18–22","abends",18,22],["Nacht","22–5","nachts",22,29]];
 
 /* ---------- state ---------- */
-function counter(perWeek){return {start:null,best:0,slips:0,perWeek,bank:0,cel:0}}
-function defaults(){return {v:2,tab:"vape",breath:"calm",statsK:"vape",vape:counter(CFG.vape.perWeek),alc:counter(CFG.alc.perWeek),
-  reasons:{vape:[],alc:[]},plans:{vape:[],alc:[]},log:[],fit:[],fitGoal:{rhr:55,vo2:55},goal:null,goalsDone:[],spent:0,backupAt:null,news:2}}
+/* start: begin of the current run (since the last slip). since: very first start. lapses: slips {t: when, e: clean again from}.
+   bank: money offset, so changing the weekly cost does not rewrite the past. best: record from before lapses were stored. */
+function counter(perWeek){return {start:null,since:null,lapses:[],best:0,slips:0,perWeek,bank:0,cel:0}}
+function defaults(){return {v:3,tab:"vape",breath:"calm",statsK:"vape",vape:counter(CFG.vape.perWeek),alc:counter(CFG.alc.perWeek),
+  reasons:{vape:[],alc:[]},plans:{vape:[],alc:[]},log:[],fit:[],fitGoal:{rhr:55,vo2:55},goal:null,goalsDone:[],spent:0,backupAt:null,news:3}}
 const isNum=x=>typeof x==="number"&&isFinite(x);
 function migrate(p){
-  const s=defaults();
+  const s=defaults(),legacy=[];
   if(!p||typeof p!=="object")return s;
   if(["vape","alc","stats"].includes(p.tab))s.tab=p.tab;
   if(["calm","sigh","box"].includes(p.breath))s.breath=p.breath;
@@ -470,6 +490,12 @@ function migrate(p){
     if(isNum(o.start))c.start=o.start;
     for(const f of ["best","slips","bank","cel"])if(isNum(o[f])&&o[f]>=0)c[f]=o[f];
     if(isNum(o.perWeek)&&o.perWeek>=0)c.perWeek=o.perWeek;
+    if(c.start==null)continue;
+    c.since=isNum(o.since)&&o.since<=c.start?o.since:c.start;
+    if(Array.isArray(o.lapses))c.lapses=o.lapses.filter(l=>l&&isNum(l.t)&&isNum(l.e)&&l.e>=l.t&&l.t>=c.since).map(l=>({
+      id:typeof l.id==="string"?l.id:uid(),t:l.t,e:l.e,trg:typeof l.trg==="string"&&l.trg?l.trg:null}));
+    else legacy.push(k);
+    recalc(c);
   }
   const strs=a=>Array.isArray(a)?a.filter(x=>typeof x==="string"&&x.trim()):[];
   if(Array.isArray(p.reasons))s.reasons.vape=strs(p.reasons);
@@ -483,15 +509,26 @@ function migrate(p){
   if(p.fitGoal&&typeof p.fitGoal==="object"){if(isNum(p.fitGoal.rhr))s.fitGoal.rhr=p.fitGoal.rhr;if(isNum(p.fitGoal.vo2))s.fitGoal.vo2=p.fitGoal.vo2}
   if(p.goal&&typeof p.goal.name==="string"&&isNum(p.goal.price)&&p.goal.price>0)s.goal={name:p.goal.name,price:p.goal.price,set:isNum(p.goal.set)?p.goal.set:Date.now()};
   if(Array.isArray(p.goalsDone))s.goalsDone=p.goalsDone.filter(g=>g&&typeof g.name==="string"&&isNum(g.price));
+  // Older versions only counted slips. Take them from the diary, keep the shown savings the same.
+  const now=Date.now();
+  for(const k of legacy){
+    const c=s[k],n=Math.floor(c.slips||0);if(!n)continue;
+    const L=s.log.filter(e=>e.k===k&&!e.ok&&e.t<=c.start).sort((a,b)=>b.t-a.t).slice(0,n).reverse();if(!L.length)continue;
+    const before=(+c.bank||0)+(+c.perWeek||0)*Math.max(0,now-c.start)/WK;
+    c.lapses=L.map(e=>({id:uid(),t:e.t,e:e.t,trg:e.trg}));c.lapses[c.lapses.length-1].e=c.start;
+    c.since=Math.min(c.start,...s.log.filter(e=>e.k===k).map(e=>e.t));recalc(c);
+    const cl=cleanOf(c,now),hr=highestReached(cl);
+    c.bank=before-(+c.perWeek||0)*cl/WK;c.cel=Math.max(+c.cel||0,hr?hr[0]:0);
+  }
   return s;
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 let S=defaults();
-try{const raw=localStorage.getItem(KEY);if(raw)S=migrate(JSON.parse(raw))}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+try{const raw=localStorage.getItem(KEY);if(raw){S=migrate(JSON.parse(raw));save()}}catch(e){}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{})}catch(e){}
 
-const ui={panel:null,factIdx:{vape:0,alc:0},sheet:null,resetLogged:null,resetTime:null,resetTrg:null,planTrg:null,
+const ui={panel:null,factIdx:{vape:0,alc:0},sheet:null,resetLogged:null,resetTime:null,resetTrg:null,slipKind:"once",slipFrom:null,slipTime:null,planTrg:null,bilDay:null,
   goalEdit:false,goalReached:null,backup:null,restore:null,logAll:false};
 for(const k of KS)ui.factIdx[k]=Math.floor(Math.random()*CFG[k].facts.length);
 
@@ -520,7 +557,30 @@ const fmtLong=ms=>{const d=Math.floor(ms/D),h=Math.floor(ms%D/H),m=Math.floor(ms
 const whenLabel=ms=>{if(ms<H)return Math.round(ms/MIN)+" Min";if(ms<D)return Math.round(ms/H)+" Std";if(ms<30*D){const d=Math.round(ms/D);return d+(d===1?" Tag":" Tagen")}if(ms<365*D)return Math.round(ms/(30*D))+" Monaten";return "1 Jahr"};
 const ctxK=()=>S.tab==="alc"?"alc":"vape";
 function highestReached(ms){let r=null;for(const m of MILESTONES)if(m[0]<=ms)r=m;return r}
-function savedK(k,now){now=now||Date.now();const c=S[k];let v=+c.bank||0;if(c.start!=null)v+=(+c.perWeek||0)*Math.max(0,now-c.start)/WK;return v}
+/* A slip costs at least one day, or the whole time when someone started again for a while.
+   Slips that overlap count once. The cost is taken off right away, but never below the current run. */
+function lostIv(c){
+  const iv=c.lapses.map(l=>[Math.max(l.t,c.since),Math.max(l.e,l.t+D)]).sort((a,b)=>a[0]-b[0]),out=[];
+  for(const x of iv){const p=out[out.length-1];if(p&&x[0]<=p[1])p[1]=Math.max(p[1],x[1]);else out.push(x)}
+  return out;
+}
+function cleanOf(c,now,from){
+  if(c.since==null)return 0;
+  const a=Math.max(c.since,from==null?-Infinity:from);if(now<=a)return 0;
+  let lost=0;for(const [lo,hi] of lostIv(c))if(hi>a)lost+=hi-Math.max(lo,a);
+  return Math.max(0,now-Math.max(c.start,a),now-a-lost);
+}
+function recalc(c){c.lapses.sort((a,b)=>a.t-b.t);c.start=Math.max(c.since,...c.lapses.map(l=>l.e))}
+function bestOf(c,now){
+  let b=Math.max(+c.best||0,now-c.start),s=c.since;
+  for(const l of c.lapses){b=Math.max(b,l.t-s);s=Math.max(s,l.e)}
+  return b;
+}
+function quoteOf(c,now,days){
+  const a=days?Math.max(c.since,now-days*D):c.since,span=Math.max(0,now-a),cl=cleanOf(c,now,a),n=Math.floor(span/D);
+  return {n,c:Math.min(n,Math.floor(cl/D)),pct:span>0?Math.floor(cl/span*100):100};
+}
+function savedK(k,now){now=now||Date.now();const c=S[k];let v=+c.bank||0;if(c.since!=null)v+=(+c.perWeek||0)*cleanOf(c,now)/WK;return Math.max(0,v)}
 const savedTotal=now=>savedK("vape",now)+savedK("alc",now);
 const available=now=>Math.max(0,savedTotal(now)-(+S.spent||0));
 const ratePerWeek=()=>KS.reduce((a,k)=>a+(S[k].start!=null?(+S[k].perWeek||0):0),0);
@@ -542,7 +602,12 @@ function arm(a){
 function pressIn(a){const g=a.parentElement;g.querySelectorAll("[aria-pressed]").forEach(b=>b.setAttribute("aria-pressed",String(b===a)))}
 function syncLock(){document.documentElement.classList.toggle("locked",!$("#overlay").hidden||!$("#sheet").hidden||!$("#celebrate").hidden)}
 let snackT=null;
-function snack(msg){const el=$("#snack");el.textContent=msg;el.hidden=false;clearTimeout(snackT);snackT=setTimeout(()=>{el.hidden=true},5000)}
+function snack(msg,ms){const el=$("#snack");el.textContent=msg;el.hidden=false;clearTimeout(snackT);snackT=setTimeout(()=>{el.hidden=true},ms||5000)}
+function clearSlip(){ui.resetLogged=null;ui.resetTime=null;ui.resetTrg=null;ui.slipKind="once";ui.slipFrom=null;ui.slipTime=null}
+function syncSlip(){
+  const f=$("#slip-from");if(f&&f.value)ui.slipFrom=parseLocal(f.value);
+  const t=$("#slip-time");if(t&&t.value){const v=parseLocal(t.value);if(Math.abs(v-parseLocal(toLocalInput(Date.now())))>=MIN)ui.slipTime=v}
+}
 
 /* ---------- render ---------- */
 function render(){
@@ -556,19 +621,18 @@ function render(){
 }
 
 function newsCard(){
-  if(S.news>=2)return "";
+  if(S.news>=3)return "";
+  const had=KS.some(k=>S[k].lapses.length);
   return `<section class="news" aria-label="Neu in der App">
     <p class="eyebrow">Update</p>
-    <p class="cardtitle">Neu in deiner App</p>
+    <p class="cardtitle">Ausrutscher statt Neustart</p>
     <ul>
-      <li><b>Craving-Tagebuch:</b> Tipp auf „Craving notieren“. Unter „Fortschritt“ siehst du dann, wann und warum es dich packt.</li>
-      <li><b>Wenn-Dann-Plan:</b> Leg fest, was du in schwierigen Momenten stattdessen machst.</li>
-      <li><b>Sparziel:</b> Sieh, wann du dir mit dem gesparten Geld etwas kaufen kannst.</li>
-      <li><b>Fitness:</b> Trag Ruhepuls und VO2max ein und schau zu, wie sie besser werden.</li>
-      <li><b>Backup-Code:</b> sichert alles, falls du das Handy wechselst.</li>
-      <li>Die App läuft jetzt auch ohne Internet.</li>
+      <li>Ein Ausrutscher setzt deinen Counter nicht mehr auf 0. Er kostet dich einen Tag, nicht alles.</li>
+      <li>Hast du wieder richtig angefangen, trägst du ein, seit wann. Nur diese Zeit fällt raus.</li>
+      <li>Neu unter dem Counter: deine <b>Bilanz</b> mit den letzten 30 Tagen auf einen Blick.</li>
+      ${had?"<li>Deine früheren Ausrutscher hat die App aus dem Tagebuch übernommen. Schau kurz in der Bilanz nach, ob sie stimmen.</li>":""}
     </ul>
-    <div class="actions"><button class="btn primary" data-act="news-backup">Backup machen</button><button class="btn" data-act="news-ok">Alles klar</button></div>
+    <div class="actions"><button class="btn primary" data-act="news-ok">Alles klar</button></div>
   </section>`;
 }
 
@@ -588,18 +652,19 @@ function unsetView(k){
 function counterView(k){
   const c=S[k],cfg=CFG[k];
   if(c.start==null)return unsetView(k);
+  const hasL=c.lapses.length>0;
   const won=S.log.filter(e=>e.k===k&&e.ok).length;
   const badges=MILESTONES.map(m=>`<div class="badge" data-ms="${m[0]}"><div class="n">${m[1]}</div><div class="l">${m[2]}</div></div>`).join("");
   const tl=cfg.timeline.map(([ms,t])=>`<li data-ms="${ms}"><span class="dot"></span><div><div class="tl-when">nach ${whenLabel(ms)}</div><div class="tl-text">${t}</div></div></li>`).join("");
   return `
   <div class="hero">
-    <p class="eyebrow">${cfg.name} seit</p>
+    <p class="eyebrow">${cfg.name} ${hasL?"insgesamt":"seit"}</p>
     <div class="ringbox">
       <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="ring-bg" cx="100" cy="100" r="88"/><circle class="ring-fg" id="ring" cx="100" cy="100" r="88" stroke-dasharray="552.92" stroke-dashoffset="552.92"/></svg>
       <div class="ringtext"><div class="days" id="days">0</div><div class="dayslabel" id="dayslabel">Tage</div><div class="clock" id="clock"></div></div>
     </div>
     <p class="next" id="next"></p>
-    <p class="since">Start: ${fmtDate(c.start)}</p>
+    ${hasL?`<p class="serie">Aktuelle Serie: <b id="serie"></b></p><p class="since">Dabei seit ${fmtDate(c.since)}</p>`:`<p class="since">Start: ${fmtDate(c.start)}</p>`}
   </div>
   ${S.goal?`<button class="goalmini" data-act="tab" data-tab="stats"><span class="gm-top"><span>Sparziel: <b>${esc(S.goal.name)}</b></span><span id="gm-pct"></span></span><span class="meter sm"><i id="gm-bar"></i></span></button>`:""}
   <div class="stats">
@@ -607,10 +672,12 @@ function counterView(k){
     <div class="stat"><span class="k">Rekord</span><span class="v" id="best">–</span></div>
     <div class="stat"><span class="k">Besiegt</span><span class="v">${won}</span></div>
   </div>
+  ${bilanzSec(k)}
   <div class="fact"><p id="fact">${cfg.facts[ui.factIdx[k]]}</p><button data-act="next-fact">Noch ein Fakt</button></div>
   ${reasonsSec(k)}
   ${plansSec(k)}
   <h3>Was in deinem Körper passiert</h3>
+  ${hasL?`<p class="note">Gezählt ab deinem letzten Ausrutscher.</p>`:""}
   <ul class="timeline" id="tl">${tl}</ul>
   <h3>Meilensteine</h3>
   <div class="badges" id="badges">${badges}</div>
@@ -621,6 +688,45 @@ function counterView(k){
     <button class="btn warn" data-act="panel" data-p="reset">Ausrutscher</button>
   </div>
   <div id="panel">${panelHtml(k)}</div>`;
+}
+
+function bilanzSec(k){
+  const c=S[k],cfg=CFG[k],now=Date.now();ui.bilDay=dayKey(now);
+  const qa=quoteOf(c,now,0),long=qa.n>=30,head=long?quoteOf(c,now,30):qa;
+  const big=head.n<1?`<p class="cardtitle">Dein erster Tag läuft.</p>`
+    :`<p class="eyebrow">${long?"Letzte 30 Tage":"Seit Start"}</p>
+      <div class="quote"><span class="qbig">${head.c} von ${head.n}</span><span class="qlab">${head.n===1?"Tag":"Tagen"} ${cfg.word}</span></div>`;
+  const slipDays=new Set();
+  for(const l of c.lapses){const d=new Date(l.t);d.setHours(0,0,0,0);while(d.getTime()<=l.e){slipDays.add(dayKey(d.getTime()));d.setDate(d.getDate()+1)}}
+  const today=new Date();today.setHours(0,0,0,0);
+  const sd=new Date(c.since);sd.setHours(0,0,0,0);
+  let cells="",nSlip=0;
+  for(let i=29;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);const t=d.getTime();
+    const cls=t<sd.getTime()?"pre":slipDays.has(dayKey(t))?"slip":i===0?"today":"";
+    if(cls==="slip")nSlip++;
+    cells+=`<i class="${cls}" title="${fmtDay(t)}${cls==="slip"?": Ausrutscher":cls==="pre"?": vor dem Start":""}"></i>`;
+  }
+  const rows=[];
+  if(qa.n>=90)rows.push(["Letzte 90 Tage",quoteOf(c,now,90)]);
+  if(long)rows.push(["Seit Start",qa]);
+  const L=[...c.lapses].reverse();
+  const list=L.length?`<details><summary>Deine Ausrutscher (${L.length})</summary>
+    <ul class="entries lapses">${L.map(l=>{const multi=l.e-l.t>=H;
+      return `<li><div class="e-main"><span class="e-when">${fmtDay(l.t)} · ${fmtTime(l.t)}${multi?" bis "+fmtDay(l.e):""}</span><span class="e-trg">${l.trg?esc(trgInfo(k,l.trg).label):"Ohne Auslöser"}</span></div>
+        <span class="tag">${multi?"Wieder angefangen":"Einmal"}</span>
+        <button class="rdel" data-act="lapse-del" data-id="${esc(l.id)}" aria-label="Ausrutscher löschen">×</button></li>`}).join("")}</ul>
+    <p class="note">Falsch eingetragen? Lösch ihn, dann zählt die Zeit wieder mit.</p></details>`:"";
+  return `<section class="sec" id="sec-bilanz"><h3>Bilanz</h3><div class="card">
+    ${big}
+    <div class="strip" role="img" aria-label="Letzte 30 Tage: ${nSlip?nSlip+(nSlip===1?" Tag":" Tage")+" mit Ausrutscher":"kein Ausrutscher"}">${cells}</div>
+    <div class="striplab" aria-hidden="true"><span>vor 30 Tagen</span><span>heute</span></div>
+    ${nSlip?`<div class="legend"><span><i class="sw sq"></i>${cfg.word}</span><span><i class="sw sq slip"></i>Ausrutscher</span></div>`:""}
+    ${rows.map(([l,q])=>`<div class="qrow"><span>${l}</span><span><b>${q.c} von ${q.n}</b> Tagen · ${q.pct} %</span></div>`).join("")}
+    <p class="note">${L.length?"Jeder Ausrutscher kostet einen Tag, nicht alles. Mehrere kurz hintereinander zählen nur einmal."
+      :"Noch kein Ausrutscher. Und falls doch einer passiert: Er kostet dich einen Tag, nicht alles."}</p>
+    ${list}
+  </div></section>`;
 }
 
 function reasonsSec(k){
@@ -649,19 +755,30 @@ function plansSec(k){
 function panelHtml(k){
   const c=S[k];
   if(!ui.panel)return "";
-  if(ui.panel==="edit")return `<div class="panel"><label for="edit-input">Neue Startzeit<input id="edit-input" type="datetime-local" value="${toLocalInput(c.start)}" max="${toLocalInput(Date.now())}"></label>
+  if(ui.panel==="edit"){
+    const first=c.lapses.length?c.lapses[0].t:Date.now();
+    return `<div class="panel"><label for="edit-input">${c.lapses.length?"Wann hast du angefangen?":"Neue Startzeit"}<input id="edit-input" type="datetime-local" value="${toLocalInput(c.since)}" max="${toLocalInput(first)}"></label>
       <p class="formerr" id="edit-err" role="alert"></p>
       <div class="actions"><button class="btn primary" data-act="edit-save">Speichern</button><button class="btn" data-act="panel" data-p="edit">Abbrechen</button></div>
-      <p class="note">Zählt nicht als Ausrutscher. Nur zum Korrigieren.</p></div>`;
+      <p class="note">Zählt nicht als Ausrutscher. Nur zum Korrigieren.${c.lapses.length?" Gemeint ist dein allererster Start, vor deinem ersten Ausrutscher.":""}</p></div>`;
+  }
   if(ui.panel==="money")return `<div class="panel"><label for="money-input">Was hast du dafür pro Woche ausgegeben? (€)<input id="money-input" type="text" inputmode="decimal" autocomplete="off" value="${fmtAuto(+c.perWeek||0)}" data-enter="money-save"></label>
       <p class="formerr" id="money-err" role="alert"></p>
       <div class="actions"><button class="btn primary" data-act="money-save">Speichern</button></div></div>`;
-  const dur=Math.max(0,Date.now()-c.start);
+  const now=Date.now(),tot=cleanOf(c,now),multi=ui.slipKind==="multi",w=CFG[k].word;
   const chips=CFG[k].triggers.map(t=>`<button class="chip" data-act="reset-trg" data-v="${t[0]}" aria-pressed="${ui.resetTrg===t[0]}">${t[1]}</button>`).join("");
-  return `<div class="panel"><p><b>Passiert. Kein Drama.</b> Du warst ${fmtLong(dur)} ${CFG[k].word}. Das bleibt als Rekord, und das gesparte Geld bleibt gespart. Ein Ausrutscher heißt nicht, dass alles umsonst war.</p>
+  const from=ui.slipFrom||(ui.resetLogged?ui.resetTime:Math.max(c.since,now-D));
+  const when=multi?`<label for="slip-from">Seit wann?<input id="slip-from" type="datetime-local" value="${toLocalInput(from)}" min="${toLocalInput(c.since)}" max="${toLocalInput(now)}"></label>
+      <p class="note">Die Zeit seitdem zählt nicht als ${w}, mindestens aber ein Tag. Alles davor bleibt. Ab jetzt läuft eine neue Serie.</p>`
+    :ui.resetLogged?"":`<details class="field"><summary>Zeitpunkt: ${ui.slipTime?esc(fmtDate(ui.slipTime)):"gerade eben"}</summary>
+      <input id="slip-time" type="datetime-local" value="${toLocalInput(ui.slipTime||now)}" min="${toLocalInput(c.since)}" max="${toLocalInput(now)}" aria-label="Zeitpunkt"></details>`;
+  return `<div class="panel"><p><b>Passiert. Kein Drama.</b> ${tot>=D?`Deine ${fmtLong(tot)} ${w} sind nicht weg. `:""}Ein Ausrutscher kostet dich einen Tag, nicht alles. Dein Rekord bleibt.</p>
+    <div class="field"><span class="flabel" id="sk-l">Was ist passiert?</span>
+      <div class="seg two" role="group" aria-labelledby="sk-l"><button data-act="slip-kind" data-v="once" aria-pressed="${!multi}">Einmal ausgerutscht</button><button data-act="slip-kind" data-v="multi" aria-pressed="${multi}">Wieder angefangen</button></div></div>
+    ${when}
     ${ui.resetLogged?"":`<span class="flabel">Was war der Auslöser? (optional)</span><div class="chips">${chips}</div>`}
-    ${ui.resetLogged&&ui.resetTime&&ui.resetTime<Date.now()-5*MIN&&ui.resetTime>c.start?`<p class="note">Der Counter startet ab deinem Eintrag (${fmtDate(ui.resetTime)}).</p>`:""}
-    <div class="actions"><button class="btn primary" data-act="reset-yes">Neu starten</button><button class="btn" data-act="reset-no">Doch nicht</button></div></div>`;
+    <p class="formerr" id="slip-err" role="alert"></p>
+    <div class="actions"><button class="btn primary" data-act="reset-yes">Eintragen</button><button class="btn" data-act="reset-no">Doch nicht</button></div></div>`;
 }
 function renderPanel(){const p=$("#panel");if(p)p.innerHTML=panelHtml(S.tab)}
 
@@ -755,7 +872,7 @@ function diaryView(k){
   const needPlan=topT&&topT[1]>=2&&!S.plans[k].some(p=>p.trg===topT[0]);
   const show=ui.logAll?L:L.slice(0,8);
   const entries=show.map(e=>{
-    const t=e.trg?esc(trgInfo(k,e.trg).label):(e.src==="reset"?"Neustart":"Ohne Auslöser");
+    const t=e.trg?esc(trgInfo(k,e.trg).label):"Ohne Auslöser";
     const lvl=e.lvl?`<span class="lvl" role="img" aria-label="Stärke ${e.lvl} von 5">${"●".repeat(e.lvl)}<span class="off">${"●".repeat(5-e.lvl)}</span></span>`:"";
     return `<li><div class="e-main"><span class="e-when">${fmtDay(e.t)} · ${fmtTime(e.t)}</span><span class="e-trg">${t}</span></div>
       <div class="e-meta">${lvl}<span class="tag ${e.ok?"ok":"bad"}">${e.ok?"besiegt":"Ausrutscher"}</span></div>
@@ -862,7 +979,7 @@ function fillTip(tip,strong,lines){
 function drawCharts(){
   tipHiders.length=0;
   const d=$("#ch-days");if(d)dayChart(d,S.statsK);
-  const {rhr,vo2}=fitSeries(),mk=S.vape.start!=null?{x:S.vape.start,label:"vape-frei"}:null;
+  const {rhr,vo2}=fitSeries(),mk=S.vape.since!=null?{x:S.vape.since,label:"vape-frei"}:null;
   const r=$("#ch-rhr");if(r)lineChart(r,rhr,{goal:S.fitGoal.rhr,unit:"bpm",name:"Ruhepuls",empty:"Noch kein Ruhepuls eingetragen.",marker:mk});
   const v=$("#ch-vo2");if(v)lineChart(v,vo2,{goal:S.fitGoal.vo2,unit:"",name:"VO2max",empty:"Noch kein VO2max eingetragen.",marker:mk});
 }
@@ -952,7 +1069,9 @@ function tick(){
   if(S.tab==="stats"){liveGoal(now);return}
   const k=S.tab,c=S[k];if(c.start==null)return;
   const el=$("#days");if(!el)return;
-  const ms=Math.max(0,now-c.start);
+  if(ui.bilDay!==dayKey(now)){const b=$("#sec-bilanz");if(b)b.outerHTML=bilanzSec(k)}
+  const ms=cleanOf(c,now),run=Math.max(0,now-c.start);
+  const sr=$("#serie");if(sr)sr.textContent=fmtLong(run);
   const d=Math.floor(ms/D),h=Math.floor(ms/H)%24,mi=Math.floor(ms/MIN)%60,se=Math.floor(ms/1e3)%60;
   el.textContent=d;$("#dayslabel").textContent=d===1?"Tag":"Tage";
   $("#clock").innerHTML=`${pad(h)}<small>h</small>${pad(mi)}<small>m</small>${pad(se)}<small>s</small>`;
@@ -961,10 +1080,10 @@ function tick(){
   $("#ring").setAttribute("stroke-dashoffset",(552.92*(1-frac)).toFixed(2));
   $("#next").innerHTML=next?`Nächster Meilenstein: <b>${next[1]} ${next[2]}</b> in ${fmtLeft(next[0]-ms)}`:"<b>Alle Meilensteine geschafft.</b> Legende.";
   $("#saved").textContent=euro(savedK(k,now));
-  $("#best").textContent=fmtDur(Math.max(+c.best||0,ms));
+  $("#best").textContent=fmtDur(bestOf(c,now));
   $$("#badges .badge").forEach(b=>b.classList.toggle("got",+b.dataset.ms<=ms));
   let nowSet=false;
-  $$("#tl li").forEach(li=>{const done=+li.dataset.ms<=ms;li.classList.toggle("done",done);
+  $$("#tl li").forEach(li=>{const done=+li.dataset.ms<=run;li.classList.toggle("done",done);
     const isNow=!done&&!nowSet;li.classList.toggle("now",isNow);if(isNow)nowSet=true;li.querySelector(".dot").textContent=done?"✓":""});
   if(S.goal&&$("#gm-pct")){const p=Math.min(100,available(now)/S.goal.price*100);$("#gm-pct").textContent=Math.floor(p)+" %";$("#gm-bar").style.width=p.toFixed(2)+"%"}
   if(prev&&prev[0]>(+c.cel||0)&&$("#overlay").hidden&&$("#sheet").hidden&&$("#celebrate").hidden){c.cel=prev[0];save();celebrate(k,prev)}
@@ -1044,23 +1163,34 @@ function saveSheet(){
   const e={id:uid(),t:Math.min(isFinite(s.t)?s.t:now,now),k:s.k,lvl:s.lvl,trg:custom?"c:"+custom:(s.trg||null),ok:s.ok,src:s.src};
   S.log.push(e);save();closeSheet();
   if(!e.ok){
-    S.tab=e.k;ui.panel="reset";ui.resetLogged=e.id;ui.resetTime=e.t;ui.resetTrg=null;save();render();
+    S.tab=e.k;ui.panel="reset";clearSlip();ui.resetLogged=e.id;ui.resetTime=e.t;save();render();
     setTimeout(()=>{const p=$("#panel");p&&p.scrollIntoView({behavior:"smooth",block:"center"})},60);return;
   }
   const n=S.log.filter(x=>x.k===e.k&&x.ok).length;
   render();snack(`Eingetragen. Das war Craving Nr. ${n}, das du besiegt hast.`);
 }
 function doReset(){
-  const k=S.tab,c=S[k],now=Date.now();
-  const ns=ui.resetLogged&&ui.resetTime&&ui.resetTime>c.start&&ui.resetTime<=now?ui.resetTime:now;
-  c.bank=(+c.bank||0)+(+c.perWeek||0)*Math.max(0,ns-c.start)/WK;
-  c.best=Math.max(+c.best||0,ns-c.start);c.slips=(+c.slips||0)+1;c.start=ns;
-  const hr=highestReached(now-ns);c.cel=hr?hr[0]:0;
+  syncSlip();
+  const k=S.tab,c=S[k],now=Date.now(),multi=ui.slipKind==="multi";
+  let t=multi?ui.slipFrom:ui.resetLogged?ui.resetTime:ui.slipTime;
+  if(multi&&!isFinite(t))t=ui.resetLogged?ui.resetTime:Math.max(c.since,now-D);
+  if(t==null||!isFinite(t))t=now;
+  if(t>now+MIN){setErr("#slip-err","Der Zeitpunkt liegt in der Zukunft.");return}
+  if(t<c.since){
+    if(!ui.resetLogged||multi){setErr("#slip-err",`Das liegt vor deinem Start (${fmtDate(c.since)}). Ändere sonst zuerst die Startzeit.`);return}
+    t=c.since;
+  }
+  t=Math.min(t,now);
   let trg=ui.resetTrg;
   if(ui.resetLogged){const le=S.log.find(e=>e.id===ui.resetLogged);trg=le?le.trg:null}
-  else S.log.push({id:uid(),t:now,k,lvl:null,trg:trg||null,ok:false,src:"reset"});
-  ui.panel=null;ui.resetLogged=null;ui.resetTime=null;ui.resetTrg=null;save();render();window.scrollTo({top:0,behavior:"smooth"});
-  snack(trg?`Neuer Start. Tipp: Leg für „${trgInfo(k,trg).label}“ einen Wenn-Dann-Plan an.`:"Neuer Start. Du hast es schon einmal geschafft, du schaffst es wieder.");
+  else S.log.push({id:uid(),t,k,lvl:null,trg:trg||null,ok:false,src:"reset"});
+  c.lapses.push({id:uid(),t,e:multi?now:t,trg:trg||null});recalc(c);
+  ui.panel=null;clearSlip();save();render();window.scrollTo({top:0,behavior:"smooth"});
+  const qa=quoteOf(c,now,0),q=qa.n>=30?quoteOf(c,now,30):qa;
+  let msg=q.n>=1?`Eingetragen. Trotzdem: ${q.c} von ${q.n} Tagen ${CFG[k].word}${qa.n>=30?" in den letzten 30 Tagen":""}.`
+    :"Eingetragen. Du hast es schon einmal geschafft, du schaffst es wieder.";
+  if(trg)msg+=` Tipp: Leg für „${trgInfo(k,trg).label}“ einen Wenn-Dann-Plan an.`;
+  snack(msg,trg?9000:6000);
 }
 
 /* ---------- backup ---------- */
@@ -1150,9 +1280,9 @@ const ACT={
   "set-start"(){
     const t=parseLocal($("#start-input").value);
     if(!isFinite(t)||t>Date.now()+MIN){setErr("#start-err","Bitte einen Zeitpunkt wählen, der nicht in der Zukunft liegt.");return}
-    S[S.tab].start=Math.min(t,Date.now());save();render();
+    const c=S[S.tab];c.since=Math.min(t,Date.now());c.lapses=[];recalc(c);save();render();
   },
-  "start-now"(){S[S.tab].start=Date.now();save();render()},
+  "start-now"(){const c=S[S.tab];c.since=Date.now();c.lapses=[];recalc(c);save();render()},
   "next-fact"(){const k=S.tab,f=CFG[k].facts;ui.factIdx[k]=(ui.factIdx[k]+1)%f.length;$("#fact").textContent=f[ui.factIdx[k]]},
   "reason-add"(){const t=$("#reason-input").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);if(!t.length)return;S.reasons[S.tab].push(...t);save();render();snack(t.length>1?t.length+" Gründe hinzugefügt.":"Grund hinzugefügt.")},
   "reason-del"(a){if(!arm(a))return;S.reasons[S.tab].splice(+a.dataset.i,1);save();render()},
@@ -1162,17 +1292,27 @@ const ACT={
     S.plans[S.tab].push({w,d,trg:ui.planTrg||null});ui.planTrg=null;save();render();snack("Plan gespeichert. Er erscheint auch im "+CFG[S.tab].ovl+".");
   },
   "plan-del"(a){if(!arm(a))return;S.plans[S.tab].splice(+a.dataset.i,1);save();render()},
-  panel(a){const p=a.dataset.p;ui.panel=ui.panel===p?null:p;ui.resetLogged=null;ui.resetTime=null;ui.resetTrg=null;renderPanel();
+  panel(a){const p=a.dataset.p;ui.panel=ui.panel===p?null:p;clearSlip();renderPanel();
     if(ui.panel)setTimeout(()=>{const el=$("#panel");el&&el.scrollIntoView({behavior:"smooth",block:"nearest"})},30)},
   "edit-save"(){
-    const c=S[S.tab],t=parseLocal($("#edit-input").value);
-    if(!isFinite(t)||t>Date.now()+MIN){setErr("#edit-err","Bitte einen Zeitpunkt wählen, der nicht in der Zukunft liegt.");return}
-    c.start=Math.min(t,Date.now());const hr=highestReached(Date.now()-c.start);c.cel=hr?hr[0]:0;ui.panel=null;save();render();snack("Startzeit gespeichert.");
+    const c=S[S.tab],t=parseLocal($("#edit-input").value),now=Date.now();
+    if(!isFinite(t)||t>now+MIN){setErr("#edit-err","Bitte einen Zeitpunkt wählen, der nicht in der Zukunft liegt.");return}
+    if(c.lapses.length&&t>c.lapses[0].t){setErr("#edit-err",`Dein erster Ausrutscher war am ${fmtDate(c.lapses[0].t)}. Der Start muss davor liegen.`);return}
+    c.since=Math.min(t,now);recalc(c);const hr=highestReached(cleanOf(c,now));c.cel=hr?hr[0]:0;ui.panel=null;save();render();snack("Startzeit gespeichert.");
   },
-  "money-save"(){const v=num($("#money-input").value);if(!(v>=0)){setErr("#money-err","Gib einen Betrag in Euro ein, z. B. 20.");return}S[S.tab].perWeek=v;ui.panel=null;save();render()},
+  "money-save"(){
+    const v=num($("#money-input").value);if(!(v>=0)){setErr("#money-err","Gib einen Betrag in Euro ein, z. B. 20.");return}
+    const c=S[S.tab];c.bank=(+c.bank||0)+((+c.perWeek||0)-v)*cleanOf(c,Date.now())/WK;c.perWeek=v;ui.panel=null;save();render();
+  },
   "reset-trg"(a){ui.resetTrg=ui.resetTrg===a.dataset.v?null:a.dataset.v;$$("[data-act=reset-trg]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===ui.resetTrg)))},
   "reset-yes"(){doReset()},
-  "reset-no"(){ui.panel=null;ui.resetLogged=null;ui.resetTime=null;renderPanel()},
+  "reset-no"(){ui.panel=null;clearSlip();renderPanel()},
+  "slip-kind"(a){syncSlip();ui.slipKind=a.dataset.v;renderPanel()},
+  "lapse-del"(a){
+    if(!arm(a))return;const c=S[S.tab],now=Date.now();
+    c.lapses=c.lapses.filter(l=>l.id!==a.dataset.id);recalc(c);
+    const hr=highestReached(cleanOf(c,now));c.cel=Math.max(+c.cel||0,hr?hr[0]:0);save();render();snack("Ausrutscher gelöscht.");
+  },
   "log-open"(a){openSheet({k:a.dataset.k||ctxK(),src:"manual"})},
   sos(){startSos()},
   mode(a){setMode(a.dataset.m)},
@@ -1242,8 +1382,8 @@ const ACT={
   "restore-yes"(){const r=ui.restore;if(!r||!r.data)return;const at=r.at;S=migrate(r.data);S.tab="stats";if(!S.backupAt&&isNum(at))S.backupAt=at;ui.restore=null;ui.backup=null;save();render();window.scrollTo(0,0);snack("Backup wiederhergestellt.")},
   "restore-cancel"(){ui.restore=null;renderBackup()},
   "cel-close"(){$("#celebrate").hidden=true;syncLock()},
-  "news-ok"(){S.news=2;save();render()},
-  "news-backup"(){S.news=2;S.tab="stats";ui.panel=null;ui.goalEdit=false;ui.restore=null;ui.backup=makeCode();S.backupAt=Date.now();save();render();
+  "news-ok"(){S.news=3;save();render()},
+  "news-backup"(){S.news=3;S.tab="stats";ui.panel=null;ui.goalEdit=false;ui.restore=null;ui.backup=makeCode();S.backupAt=Date.now();save();render();
     const el=$("#sec-backup");if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:"smooth",block:"start"}))}
 };
 document.addEventListener("click",e=>{
