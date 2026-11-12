@@ -302,6 +302,33 @@ details .formgrid+.btn{margin-top:10px}
 .sessbar{width:min(260px,70vw);height:4px;border-radius:4px;background:var(--line);overflow:hidden}
 .sessbar span{display:block;height:100%;width:0;background:var(--accent)}
 
+/* Sternbild game (craving mode) */
+.ovl-part{display:flex;flex-direction:column;align-items:center;gap:18px;width:100%}
+.kinds{width:min(260px,72vw)}
+.game{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.game-stat{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.game-stat b{color:var(--fg)}
+.ggrid{--n:4;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:8px;width:min(320px,82vw);aspect-ratio:1}
+@media (max-height:700px){.ggrid{width:min(250px,66vw)}}
+.gcell{border:0;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);position:relative;padding:0;min-width:0;transition:background .25s,transform .12s}
+.gcell::after{content:"";position:absolute;inset:28%;border-radius:50%;background:var(--accent);opacity:0;transform:scale(.3);transition:opacity .25s,transform .25s}
+.gcell.lit{background:var(--accent-soft)}
+.gcell.lit::after{opacity:1;transform:none;box-shadow:0 0 18px 2px var(--accent)}
+.gcell.found::after{opacity:1;transform:none}
+.gcell.ghost{background:transparent}
+.gcell.ghost::after{opacity:.4;transform:scale(.8);box-shadow:none}
+.gcell.miss{box-shadow:inset 0 0 0 2px var(--danger)}
+.gcell:disabled{cursor:default;color:inherit}
+.gcell:active:not(:disabled){transform:scale(.93)}
+.game-msg{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.2;min-height:1.2em}
+
+/* share image */
+.sharepv{display:flex;justify-content:center}
+.sharepv img{display:block;height:min(44vh,420px);aspect-ratio:9/16;width:auto;max-width:100%;border-radius:14px;background:#0d1411;box-shadow:0 6px 20px rgba(0,0,0,.25);object-fit:contain}
+.sharepv.square img{aspect-ratio:1;height:auto;width:min(100%,300px)}
+.cel-actions{justify-content:center}
+.cel-actions .btn{margin-top:6px}
+
 /* log sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end}
 .sheet-bg{position:absolute;inset:0;background:var(--scrim)}
@@ -320,7 +347,7 @@ details .formgrid+.btn{margin-top:10px}
   padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
 .cel-card{background:var(--surface);border-radius:24px;padding:28px 22px 22px;max-width:360px;width:100%;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;animation:pop .5s cubic-bezier(.2,1.3,.4,1)}
 .cel-badge{width:104px;height:104px;border-radius:50%;background:var(--accent-soft);box-shadow:inset 0 0 0 4px var(--accent);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:46px;line-height:1;letter-spacing:-.03em}
-.cel-card .btn{margin-top:6px;min-width:140px}
+.cel-card .btn{min-width:130px}
 #confetti{position:fixed;inset:0;width:100%;height:100%;z-index:45;pointer-events:none}
 @keyframes up{from{transform:translateY(24px);opacity:.3}to{transform:none;opacity:1}}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
@@ -343,16 +370,26 @@ details .formgrid+.btn{margin-top:10px}
 
 <div class="overlay th-vape" id="overlay" hidden>
   <p class="eyebrow" id="ovl-eyebrow">Craving-Modus</p>
-  <div class="modes" id="modes" role="group" aria-label="Atemtechnik">
-    <button data-act="mode" data-m="calm">Ruhig 5–5</button><button data-act="mode" data-m="sigh">Seufzer</button><button data-act="mode" data-m="box">Box 4–4–4–4</button>
+  <div class="seg two kinds" id="kinds" role="group" aria-label="Was willst du machen?">
+    <button data-act="ovl-kind" data-v="breathe">Atmen</button><button data-act="ovl-kind" data-v="play">Spielen</button>
   </div>
-  <p class="modenote" id="modenote"></p>
-  <div class="bstage" aria-hidden="true">
-    <div class="blob b3" id="b3"></div><div class="blob b2" id="b2"></div><div class="blob b1" id="b1"></div>
-    <svg viewBox="0 0 200 200"><circle class="btrack" cx="100" cy="100" r="97"/><circle class="barc" id="barc" cx="100" cy="100" r="97" stroke-dasharray="609.47" stroke-dashoffset="609.47"/></svg>
-    <span class="bcount" id="bcount"></span>
+  <div class="ovl-part" id="ovl-breathe">
+    <div class="modes" id="modes" role="group" aria-label="Atemtechnik">
+      <button data-act="mode" data-m="calm">Ruhig 5–5</button><button data-act="mode" data-m="sigh">Seufzer</button><button data-act="mode" data-m="box">Box 4–4–4–4</button>
+    </div>
+    <p class="modenote" id="modenote"></p>
+    <div class="bstage" aria-hidden="true">
+      <div class="blob b3" id="b3"></div><div class="blob b2" id="b2"></div><div class="blob b1" id="b1"></div>
+      <svg viewBox="0 0 200 200"><circle class="btrack" cx="100" cy="100" r="97"/><circle class="barc" id="barc" cx="100" cy="100" r="97" stroke-dasharray="609.47" stroke-dashoffset="609.47"/></svg>
+      <span class="bcount" id="bcount"></span>
+    </div>
+    <p class="ovl-title" id="ovl-phase" aria-live="polite">Einatmen</p>
   </div>
-  <p class="ovl-title" id="ovl-phase" aria-live="polite">Einatmen</p>
+  <div class="game" id="game" hidden>
+    <p class="game-stat" id="game-stat"></p>
+    <div class="ggrid" id="ggrid" role="group" aria-label="Sternbild"></div>
+    <p class="game-msg" id="game-msg" aria-live="polite"></p>
+  </div>
   <div class="sessbar"><span id="sessbar"></span></div>
   <p class="ovl-timer" id="ovl-timer">3:00</p>
   <p class="ovl-sub" id="ovl-sub"></p>
@@ -371,7 +408,7 @@ details .formgrid+.btn{margin-top:10px}
     <div class="cel-badge" id="cel-num" aria-hidden="true"></div>
     <h2 id="cel-title"></h2>
     <p class="note" id="cel-msg"></p>
-    <button class="btn primary" data-act="cel-close">Weiter</button>
+    <div class="actions cel-actions"><button class="btn primary" data-act="cel-close">Weiter</button><button class="btn" data-act="cel-share">Als Bild teilen</button></div>
   </div>
 </div>
 <canvas id="confetti" aria-hidden="true" hidden></canvas>
@@ -474,13 +511,15 @@ const BLOCKS=[["Früh","5–9","früh morgens",5,9],["Vormittag","9–12","vormi
    bank: money offset, so changing the weekly cost does not rewrite the past. best: record from before lapses were stored. */
 function counter(perWeek){return {start:null,since:null,lapses:[],best:0,slips:0,perWeek,bank:0,cel:0}}
 function defaults(){return {v:3,tab:"vape",breath:"calm",statsK:"vape",vape:counter(CFG.vape.perWeek),alc:counter(CFG.alc.perWeek),
-  reasons:{vape:[],alc:[]},plans:{vape:[],alc:[]},log:[],fit:[],fitGoal:{rhr:55,vo2:55},goal:null,goalsDone:[],spent:0,backupAt:null,news:3}}
+  reasons:{vape:[],alc:[]},plans:{vape:[],alc:[]},log:[],fit:[],fitGoal:{rhr:55,vo2:55},goal:null,goalsDone:[],spent:0,backupAt:null,news:4,sosKind:"breathe",gameBest:0}}
 const isNum=x=>typeof x==="number"&&isFinite(x);
 function migrate(p){
   const s=defaults(),legacy=[];
   if(!p||typeof p!=="object")return s;
   if(["vape","alc","stats"].includes(p.tab))s.tab=p.tab;
   if(["calm","sigh","box"].includes(p.breath))s.breath=p.breath;
+  if(p.sosKind==="play")s.sosKind="play";
+  if(isNum(p.gameBest)&&p.gameBest>0)s.gameBest=Math.min(36,Math.floor(p.gameBest));
   if(KS.includes(p.statsK))s.statsK=p.statsK;
   if(isNum(p.backupAt))s.backupAt=p.backupAt;
   s.news=isNum(p.news)?p.news:1;
@@ -621,15 +660,15 @@ function render(){
 }
 
 function newsCard(){
-  if(S.news>=3)return "";
-  const had=KS.some(k=>S[k].lapses.length);
+  if(S.news>=4)return "";
+  const old=S.news<3,had=old&&KS.some(k=>S[k].lapses.length);
   return `<section class="news" aria-label="Neu in der App">
     <p class="eyebrow">Update</p>
-    <p class="cardtitle">Ausrutscher statt Neustart</p>
+    <p class="cardtitle">Neu in deiner App</p>
     <ul>
-      <li>Ein Ausrutscher setzt deinen Counter nicht mehr auf 0. Er kostet dich einen Tag, nicht alles.</li>
-      <li>Hast du wieder richtig angefangen, trägst du ein, seit wann. Nur diese Zeit fällt raus.</li>
-      <li>Neu unter dem Counter: deine <b>Bilanz</b> mit den letzten 30 Tagen auf einen Blick.</li>
+      <li><b>Spielen statt Atmen:</b> Im Craving-Modus kannst du jetzt auch „Sternbild“ spielen. Merk dir, wo die Sterne leuchten, und tipp sie an. Das lenkt dein Kopfkino ab.</li>
+      <li><b>Als Bild teilen:</b> Dein Stand oder ein Meilenstein als Bild für Story oder WhatsApp. Nur deine Tage, keine Gründe, kein Tagebuch.</li>
+      ${old?"<li><b>Ausrutscher statt Neustart:</b> Ein Ausrutscher kostet dich einen Tag, nicht alles. Deine Bilanz zeigt die letzten 30 Tage.</li>":""}
       ${had?"<li>Deine früheren Ausrutscher hat die App aus dem Tagebuch übernommen. Schau kurz in der Bilanz nach, ob sie stimmen.</li>":""}
     </ul>
     <div class="actions"><button class="btn primary" data-act="news-ok">Alles klar</button></div>
@@ -665,6 +704,7 @@ function counterView(k){
     </div>
     <p class="next" id="next"></p>
     ${hasL?`<p class="serie">Aktuelle Serie: <b id="serie"></b></p><p class="since">Dabei seit ${fmtDate(c.since)}</p>`:`<p class="since">Start: ${fmtDate(c.start)}</p>`}
+    <button class="linkbtn" data-act="share-open">Als Bild teilen</button>
   </div>
   ${S.goal?`<button class="goalmini" data-act="tab" data-tab="stats"><span class="gm-top"><span>Sparziel: <b>${esc(S.goal.name)}</b></span><span id="gm-pct"></span></span><span class="meter sm"><i id="gm-bar"></i></span></button>`:""}
   <div class="stats">
@@ -1102,7 +1142,7 @@ function liveGoal(now){
 /* ---------- celebration ---------- */
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
 function celebrate(k,m){
-  const el=$("#celebrate");el.className="celebrate th-"+k;
+  const el=$("#celebrate");el.className="celebrate th-"+k;ui.cel={k,m};
   $("#cel-num").textContent=m[1];$("#cel-title").textContent=`${m[2]} ${CFG[k].word}!`;
   $("#cel-msg").textContent=CFG[k].msg[m[0]]||m[3];
   el.hidden=false;syncLock();confetti();setTimeout(()=>{const b=el.querySelector(".btn");b&&b.focus()},120);
@@ -1129,9 +1169,9 @@ function openSheet(o){
   ui.sheet={k:o.k,src:o.src||"manual",lvl:null,trg:null,custom:"",ok:o.ok!==false,t:Date.now()};
   renderSheet();$("#sheet").hidden=false;syncLock();setTimeout(()=>$("#sheet-body").focus({preventScroll:true}),30);
 }
-function closeSheet(){$("#sheet").hidden=true;ui.sheet=null;syncLock()}
+function closeSheet(){const s=ui.sheet;if(s&&s.url)URL.revokeObjectURL(s.url);$("#sheet").hidden=true;ui.sheet=null;syncLock()}
 function syncSheet(){
-  const s=ui.sheet;if(!s)return;
+  const s=ui.sheet;if(!s||s.type)return;
   const c=$("#sheet-custom");if(c)s.custom=c.value;
   const t=$("#sheet-time");if(t&&t.value){const v=parseLocal(t.value);if(isFinite(v))s.t=v}
 }
@@ -1193,6 +1233,71 @@ function doReset(){
   snack(msg,trg?9000:6000);
 }
 
+/* ---------- share image ---------- */
+function openShare(k,m){
+  $("#snack").hidden=true;
+  ui.sheet={type:"share",k,m:m||null,fmt:"story",money:false,blob:null,url:null,tok:0};
+  renderShare();$("#sheet").hidden=false;syncLock();setTimeout(()=>$("#sheet-body").focus({preventScroll:true}),30);
+}
+let canFiles=null;
+function canShareFiles(){
+  if(canFiles==null)try{canFiles=!!(navigator.canShare&&navigator.canShare({files:[new File(["x"],"x.png",{type:"image/png"})]}))}catch(e){canFiles=false}
+  return canFiles;
+}
+function renderShare(){
+  const s=ui.sheet,can=canShareFiles();
+  $("#sheet").className="sheet-wrap th-"+s.k;
+  $("#sheet-body").innerHTML=`
+    <div class="sheet-head"><h2 id="sheet-title">Als Bild teilen</h2><button class="x" data-act="sheet-close" aria-label="Schließen">×</button></div>
+    <div class="sharepv ${s.fmt}"><img id="share-img" alt="Vorschau des Bildes" ${s.url?`src="${s.url}"`:""}></div>
+    <div class="field"><span class="flabel" id="fmt-l">Format</span>
+      <div class="seg two" role="group" aria-labelledby="fmt-l"><button data-act="share-fmt" data-v="story" aria-pressed="${s.fmt==="story"}">Story</button><button data-act="share-fmt" data-v="square" aria-pressed="${s.fmt==="square"}">Quadrat</button></div></div>
+    <div class="chips"><button class="chip" data-act="share-money" aria-pressed="${s.money}">Gespartes Geld zeigen</button></div>
+    <p class="note">Auf dem Bild ${s.money?"stehen nur deine Tage und das gesparte Geld":"stehen nur deine Tage"}. Keine Gründe, kein Tagebuch.</p>
+    <div class="actions">${can?`<button class="btn primary" data-act="share-go">Teilen</button>`:""}<button class="btn${can?"":" primary"}" data-act="share-save">Bild speichern</button></div>`;
+  const s0=s,tok=++s.tok;
+  drawShare(s).then(cv=>cv.toBlob(b=>{
+    if(ui.sheet!==s0||tok!==s0.tok||!b)return;
+    if(s0.url)URL.revokeObjectURL(s0.url);s0.blob=b;s0.url=URL.createObjectURL(b);
+    const img=$("#share-img");if(img)img.src=s0.url;
+  },"image/png"));
+}
+async function drawShare(o){
+  const story=o.fmt==="story",W=1080,Hh=story?1920:1080;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=Hh;const x=cv.getContext("2d");
+  try{await Promise.race([Promise.all(['800 200px "Bricolage Grotesque"','500 60px "Bricolage Grotesque"','600 40px "Figtree"','700 40px "Figtree"'].map(f=>document.fonts.load(f))),new Promise(r=>setTimeout(r,1500))])}catch(e){}
+  const c=S[o.k],now=Date.now(),ms=cleanOf(c,now),A={vape:["#34d399","#11392b"],alc:["#f5a65b","#3b2814"]}[o.k];
+  const BG="#0d1411",FG="#e8f0eb",MU="#93a39a",DSP='"Bricolage Grotesque", system-ui, sans-serif',BODY='Figtree, system-ui, sans-serif';
+  let num,unit,frac=1,eye;
+  if(o.m){num=o.m[1];unit=o.m[2];eye="Meilenstein"}
+  else{
+    eye="Mein Stand";
+    if(ms>=D){const d=Math.floor(ms/D);num=String(d);unit=d===1?"Tag":"Tage"}
+    else if(ms>=H){const h=Math.floor(ms/H);num=String(h);unit=h===1?"Stunde":"Stunden"}
+    else{const mi=Math.floor(ms/MIN);num=String(mi);unit=mi===1?"Minute":"Minuten"}
+    const next=MILESTONES.find(m=>m[0]>ms),prev=highestReached(ms),lo=prev?prev[0]:0;
+    frac=next?Math.max(.03,(ms-lo)/(next[0]-lo)):1;
+  }
+  const cy=story?800:430,R=story?330:240,cx=W/2;
+  x.fillStyle=BG;x.fillRect(0,0,W,Hh);
+  const g=x.createRadialGradient(cx,cy,0,cx,cy,W*.95);g.addColorStop(0,A[1]);g.addColorStop(1,"rgba(13,20,17,0)");x.fillStyle=g;x.fillRect(0,0,W,Hh);
+  x.textAlign="center";x.textBaseline="alphabetic";
+  const sp=v=>{if("letterSpacing" in x)x.letterSpacing=v};
+  sp("8px");x.fillStyle=MU;x.font=`600 ${story?36:30}px ${BODY}`;x.fillText(eye.toUpperCase(),cx,cy-R-(story?110:56));sp("0px");
+  x.lineWidth=story?34:26;x.strokeStyle=A[1];x.beginPath();x.arc(cx,cy,R,0,Math.PI*2);x.stroke();
+  x.strokeStyle=A[0];x.lineCap="round";x.beginPath();x.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,frac));x.stroke();
+  let fs=story?300:220;x.font=`800 ${fs}px ${DSP}`;const w=x.measureText(num).width;if(w>R*1.5){fs=Math.floor(fs*R*1.5/w);x.font=`800 ${fs}px ${DSP}`}
+  x.fillStyle=FG;x.fillText(num,cx,cy+fs*.3-(story?20:14));
+  x.fillStyle=MU;x.font=`500 ${story?64:50}px ${DSP}`;x.fillText(unit,cx,cy+R*.52);
+  const hy=cy+R+(story?190:130);
+  x.fillStyle=A[0];x.font=`800 ${story?124:96}px ${DSP}`;x.fillText(CFG[o.k].word,cx,hy);
+  if(o.money){x.fillStyle=FG;x.font=`600 ${story?48:40}px ${BODY}`;x.fillText(euro(savedK(o.k,now))+" gespart",cx,hy+(story?100:76))}
+  x.fillStyle=MU;x.font=`700 ${story?34:28}px ${BODY}`;
+  x.fillText("Clean Streak · "+new Date(now).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}),cx,Hh-(story?140:56));
+  return cv;
+}
+function shareName(){const s=ui.sheet;return `clean-streak-${s.k==="alc"?"alkoholfrei":"vape-frei"}-${dayKey(Date.now())}.png`}
+
 /* ---------- backup ---------- */
 function makeCode(){
   const bytes=new TextEncoder().encode(JSON.stringify({app:"clean-streak",v:2,at:Date.now(),data:S}));
@@ -1221,6 +1326,62 @@ const PATTERNS={
 };
 const SESSION=180,ease=x=>-(Math.cos(Math.PI*x)-1)/2;
 let raf=null,wake=null,sess=null;
+const SUB={breathe:"Ein Craving ist eine Welle. Sie wird stärker und geht dann von allein wieder weg. Atme mit dem Kreis.",
+  play:"Merk dir, wo die Sterne leuchten, und tipp sie dann an. So eine Merkaufgabe lenkt dein Kopfkino ab, und die Welle wird schwächer."};
+function applyKind(){
+  const kind=sess?sess.kind:"breathe";
+  $$("#kinds button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===kind)));
+  $("#ovl-breathe").hidden=kind!=="breathe";$("#game").hidden=kind!=="play";
+  $("#ovl-reason").hidden=kind!=="breathe"||!sess||!sess.items.length;
+  if(sess&&!sess.done)$("#ovl-sub").textContent=SUB[kind];
+}
+
+/* ---------- Sternbild (craving mode game) ----------
+   Remember where the stars light up, then tap them. Visuospatial tasks compete with the mental images that keep a craving going
+   (Elaborated Intrusion theory, Kavanagh et al. 2005); in a field study a few minutes of a puzzle game lowered craving strength
+   (Skorka-Brown et al. 2015). Adaptive: one star more after a full hit, one less after two misses in a row. */
+let game=null,gT=null;
+const gSize=n=>n<=4?4:n<=8?5:6;
+function gStop(){clearTimeout(gT);gT=null}
+function gLater(f,ms){clearTimeout(gT);gT=setTimeout(f,ms)}
+function gMsg(t){$("#game-msg").textContent=t}
+function gNew(){gStop();game={n:3,fails:0,phase:"idle",target:new Set(),found:new Set(),miss:null,size:4};gRound()}
+function gRound(){
+  if(!sess||sess.done||!game)return;
+  const g=game;g.size=gSize(g.n);g.target=new Set();g.found=new Set();g.miss=null;
+  while(g.target.size<g.n)g.target.add(Math.floor(Math.random()*g.size*g.size));
+  g.phase="show";gRender();gMsg(`Merk dir ${g.n} Sterne …`);
+  gLater(()=>{if(!game||g!==game)return;g.phase="input";gRender();gMsg("Jetzt antippen.")},900+g.n*350);
+}
+function gRender(){
+  const g=game,grid=$("#ggrid");if(!g)return;
+  grid.style.setProperty("--n",g.size);
+  let h="";
+  for(let i=0;i<g.size*g.size;i++){
+    const t=g.target.has(i);
+    const cls=g.phase==="show"&&t?"lit":g.found.has(i)?"found":g.miss===i?"miss":(g.phase==="reveal"||g.phase==="over")&&t?"ghost":"";
+    h+=`<button class="gcell ${cls}" data-act="g-tap" data-i="${i}" aria-label="Feld ${Math.floor(i/g.size)+1}, ${i%g.size+1}"${g.phase!=="input"?" disabled":""}></button>`;
+  }
+  grid.innerHTML=h;
+  $("#game-stat").innerHTML=`Level <b>${g.n-2}</b> · Rekord <b>${Math.max(1,(S.gameBest||0)-2)}</b>`;
+}
+function gTap(a){
+  const g=game;if(!g||g.phase!=="input")return;
+  const i=+a.dataset.i;if(g.found.has(i))return;
+  if(g.target.has(i)){
+    g.found.add(i);a.classList.add("found");
+    if(g.found.size<g.target.size)return;
+    g.phase="done";if(g.n>(S.gameBest||0)){S.gameBest=g.n;save()}
+    try{navigator.vibrate&&navigator.vibrate(25)}catch(e){}
+    gMsg(["Richtig!","Stark!","Genau so.","Sitzt."][Math.floor(Math.random()*4)]);
+    g.n=Math.min(16,g.n+1);g.fails=0;$$("#ggrid .gcell").forEach(b=>b.disabled=true);gLater(gRound,850);
+  }else{
+    g.miss=i;g.phase="reveal";g.fails++;gRender();
+    if(g.fails>=2&&g.n>3){g.n--;g.fails=0;gMsg("Kein Problem, einer weniger.")}else gMsg("Fast. Hier waren sie.");
+    gLater(gRound,1500);
+  }
+}
+
 function setMode(m){
   if(!PATTERNS[m])m="calm";S.breath=m;save();
   $$("#modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)));
@@ -1235,25 +1396,28 @@ function sosItems(k){
 function showItem(){if(!sess||!sess.items.length)return;const it=sess.items[sess.ri++%sess.items.length];$("#ovl-item-label").textContent=it[0];$("#ovl-reason-text").textContent=it[1]}
 function frame(now){
   if(!sess)return;
-  const P=PATTERNS[S.breath||"calm"].ph,cyc=P.reduce((a,x)=>a+x[1],0);
   const el=(now-sess.t0)/1000,left=Math.max(0,SESSION-el);
-  let t=((now-sess.cycleStart)/1000)%cyc,i=0;
-  while(i<P.length-1&&t>=P[i][1]){t-=P[i][1];i++}
-  const [label,dur,a,b]=P[i],f=Math.min(1,t/dur),sc=a+(b-a)*ease(f),pulse=a===b?1+Math.sin(now/260)*.012:1;
-  if(reduce)$("#b1").style.opacity=(.35+.65*(sc-.55)/.45).toFixed(3);
-  else{$("#b1").style.transform=`scale(${(sc*pulse).toFixed(4)})`;$("#b2").style.transform=`scale(${(.12+sc).toFixed(4)})`;$("#b3").style.transform=`scale(${(.2+sc*1.06).toFixed(4)})`}
-  $("#barc").setAttribute("stroke-dashoffset",(609.47*(1-f)).toFixed(1));
-  $("#bcount").textContent=Math.max(1,Math.ceil(dur-t));
-  if(i!==sess.lastPhase){sess.lastPhase=i;const ph=$("#ovl-phase");ph.classList.add("fade");setTimeout(()=>{ph.textContent=label;ph.classList.remove("fade")},180);
-    try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
+  if(sess.kind==="breathe"){
+    const P=PATTERNS[S.breath||"calm"].ph,cyc=P.reduce((a,x)=>a+x[1],0);
+    let t=((now-sess.cycleStart)/1000)%cyc,i=0;
+    while(i<P.length-1&&t>=P[i][1]){t-=P[i][1];i++}
+    const [label,dur,a,b]=P[i],f=Math.min(1,t/dur),sc=a+(b-a)*ease(f),pulse=a===b?1+Math.sin(now/260)*.012:1;
+    if(reduce)$("#b1").style.opacity=(.35+.65*(sc-.55)/.45).toFixed(3);
+    else{$("#b1").style.transform=`scale(${(sc*pulse).toFixed(4)})`;$("#b2").style.transform=`scale(${(.12+sc).toFixed(4)})`;$("#b3").style.transform=`scale(${(.2+sc*1.06).toFixed(4)})`}
+    $("#barc").setAttribute("stroke-dashoffset",(609.47*(1-f)).toFixed(1));
+    $("#bcount").textContent=Math.max(1,Math.ceil(dur-t));
+    if(i!==sess.lastPhase){sess.lastPhase=i;const ph=$("#ovl-phase");ph.classList.add("fade");setTimeout(()=>{ph.textContent=label;ph.classList.remove("fade")},180);
+      try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
+    const rb=Math.floor(el/12);if(rb!==sess.rb){sess.rb=rb;showItem()}
+  }
   $("#ovl-timer").textContent=Math.floor(Math.ceil(left)/60)+":"+pad(Math.ceil(left)%60);
   $("#sessbar").style.width=Math.min(100,100*el/SESSION).toFixed(2)+"%";
-  const rb=Math.floor(el/12);if(rb!==sess.rb){sess.rb=rb;showItem()}
   if(left<=0){endSession();return}
   raf=requestAnimationFrame(frame);
 }
 function endSession(){
-  cancelAnimationFrame(raf);
+  cancelAnimationFrame(raf);sess.done=true;gStop();
+  if(game){game.phase="over";gRender();gMsg("Welle vorbei ✓")}
   $("#ovl-phase").textContent="Welle vorbei";$("#bcount").textContent="✓";
   $("#b1").style.transform="scale(.8)";$("#b2").style.transform="scale(.9)";$("#b3").style.transform="scale(1)";
   $("#barc").setAttribute("stroke-dashoffset","0");$("#sessbar").style.width="100%";
@@ -1264,15 +1428,14 @@ function startSos(){
   const k=ctxK(),ov=$("#overlay");
   ov.className="overlay th-"+k;
   $("#ovl-eyebrow").textContent=CFG[k].ovl;
-  $("#ovl-sub").textContent="Ein Craving ist eine Welle. Sie wird stärker und geht dann von allein wieder weg. Atme mit dem Kreis.";
   $("#ovl-close").textContent="Geschafft";
-  const now=performance.now();sess={k,t0:now,cycleStart:now,lastPhase:-1,rb:-1,ri:0,items:sosItems(k)};
-  $("#ovl-reason").hidden=!sess.items.length;
-  ov.hidden=false;syncLock();setMode(S.breath||"calm");
+  const now=performance.now();sess={k,t0:now,cycleStart:now,lastPhase:-1,rb:-1,ri:0,items:sosItems(k),kind:S.sosKind==="play"?"play":"breathe",done:false};
+  game=null;$("#ggrid").innerHTML="";gMsg("");
+  ov.hidden=false;syncLock();setMode(S.breath||"calm");applyKind();if(sess.kind==="play")gNew();
   try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>{wake=w}).catch(()=>{})}catch(e){}
   cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
 }
-function stopSos(){cancelAnimationFrame(raf);sess=null;try{wake&&wake.release()}catch(e){}wake=null;$("#overlay").hidden=true;syncLock()}
+function stopSos(){cancelAnimationFrame(raf);gStop();game=null;sess=null;try{wake&&wake.release()}catch(e){}wake=null;$("#overlay").hidden=true;syncLock()}
 
 /* ---------- actions ---------- */
 const ACT={
@@ -1316,6 +1479,25 @@ const ACT={
   "log-open"(a){openSheet({k:a.dataset.k||ctxK(),src:"manual"})},
   sos(){startSos()},
   mode(a){setMode(a.dataset.m)},
+  "ovl-kind"(a){
+    if(!sess)return;const v=a.dataset.v==="play"?"play":"breathe";S.sosKind=v;save();
+    if(v===sess.kind)return;sess.kind=v;
+    if(v==="breathe"){gStop();game=null;sess.cycleStart=performance.now();sess.lastPhase=-1;sess.rb=-1}
+    applyKind();if(v==="play"&&!sess.done)gNew();
+  },
+  "g-tap"(a){gTap(a)},
+  "share-open"(){openShare(S.tab,null)},
+  "cel-share"(){const c=ui.cel;$("#celebrate").hidden=true;syncLock();if(c)openShare(c.k,c.m)},
+  "share-fmt"(a){const s=ui.sheet;if(!s||s.fmt===a.dataset.v)return;s.fmt=a.dataset.v;if(s.url)URL.revokeObjectURL(s.url);s.url=null;s.blob=null;renderShare()},
+  "share-money"(){const s=ui.sheet;if(!s)return;s.money=!s.money;renderShare()},
+  "share-go"(){
+    const s=ui.sheet;if(!s||!s.blob)return;
+    try{navigator.share({files:[new File([s.blob],shareName(),{type:"image/png"})]}).catch(()=>{})}catch(e){}
+  },
+  "share-save"(){
+    const s=ui.sheet;if(!s||!s.url)return;
+    const a=document.createElement("a");a.href=s.url;a.download=shareName();document.body.appendChild(a);a.click();a.remove();
+  },
   "ovl-close"(){const k=sess?sess.k:ctxK();stopSos();openSheet({k,src:"sos",ok:true})},
   "sheet-k"(a){syncSheet();ui.sheet.k=a.dataset.k;ui.sheet.trg=null;renderSheet()},
   "sheet-lvl"(a){ui.sheet.lvl=+a.dataset.v;pressIn(a)},
@@ -1382,8 +1564,8 @@ const ACT={
   "restore-yes"(){const r=ui.restore;if(!r||!r.data)return;const at=r.at;S=migrate(r.data);S.tab="stats";if(!S.backupAt&&isNum(at))S.backupAt=at;ui.restore=null;ui.backup=null;save();render();window.scrollTo(0,0);snack("Backup wiederhergestellt.")},
   "restore-cancel"(){ui.restore=null;renderBackup()},
   "cel-close"(){$("#celebrate").hidden=true;syncLock()},
-  "news-ok"(){S.news=3;save();render()},
-  "news-backup"(){S.news=3;S.tab="stats";ui.panel=null;ui.goalEdit=false;ui.restore=null;ui.backup=makeCode();S.backupAt=Date.now();save();render();
+  "news-ok"(){S.news=4;save();render()},
+  "news-backup"(){S.news=4;S.tab="stats";ui.panel=null;ui.goalEdit=false;ui.restore=null;ui.backup=makeCode();S.backupAt=Date.now();save();render();
     const el=$("#sec-backup");if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:"smooth",block:"start"}))}
 };
 document.addEventListener("click",e=>{
