@@ -25,9 +25,10 @@
   --vape:#0c8a60; --vape-soft:#d6f2e6; --on-vape:#ffffff;
   --alc:#d9822b; --alc-soft:#f8e6d2; --on-alc:#2b1a08;
   --fit:#3d63dd; --fit-soft:#e3e9fb; --on-fit:#ffffff;
+  --own:#b8327f; --own-soft:#fae3f0; --on-own:#ffffff;
   --danger:#c2410c;
   /* chart marks, validated per mode (lightness band, contrast vs surface) */
-  --c-vape:#0f9d6e; --c-alc:#c9731f; --c-fit:#3d63dd;
+  --c-vape:#0f9d6e; --c-alc:#c9731f; --c-fit:#3d63dd; --c-own:#c23d8a;
   --accent:var(--vape); --accent-soft:var(--vape-soft); --on-accent:var(--on-vape); --c-accent:var(--c-vape);
   --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --body:"Figtree",ui-sans-serif,system-ui,-apple-system,sans-serif;
@@ -39,20 +40,23 @@
   --vape:#34d399; --vape-soft:#11392b; --on-vape:#0d1411;
   --alc:#f5a65b; --alc-soft:#3b2814; --on-alc:#0d1411;
   --fit:#8ea6ff; --fit-soft:#1c2645; --on-fit:#0d1411;
+  --own:#f48cc4; --own-soft:#3d1c30; --on-own:#0d1411;
   --danger:#fb8a5c;
-  --c-vape:#1fa577; --c-alc:#c47a2c; --c-fit:#6a86f5;
+  --c-vape:#1fa577; --c-alc:#c47a2c; --c-fit:#6a86f5; --c-own:#cf5f9c;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0d1411; --surface:#16201b; --line:#26332c; --fg:#e8f0eb; --muted:#93a39a; --scrim:rgba(0,0,0,.62);
   --vape:#34d399; --vape-soft:#11392b; --on-vape:#0d1411;
   --alc:#f5a65b; --alc-soft:#3b2814; --on-alc:#0d1411;
   --fit:#8ea6ff; --fit-soft:#1c2645; --on-fit:#0d1411;
+  --own:#f48cc4; --own-soft:#3d1c30; --on-own:#0d1411;
   --danger:#fb8a5c;
-  --c-vape:#1fa577; --c-alc:#c47a2c; --c-fit:#6a86f5;
+  --c-vape:#1fa577; --c-alc:#c47a2c; --c-fit:#6a86f5; --c-own:#cf5f9c;
   color-scheme:dark}
 .th-vape{--accent:var(--vape);--accent-soft:var(--vape-soft);--on-accent:var(--on-vape);--c-accent:var(--c-vape)}
 .th-alc{--accent:var(--alc);--accent-soft:var(--alc-soft);--on-accent:var(--on-alc);--c-accent:var(--c-alc)}
 .th-fit{--accent:var(--fit);--accent-soft:var(--fit-soft);--on-accent:var(--on-fit);--c-accent:var(--c-fit)}
+.th-own{--accent:var(--own);--accent-soft:var(--own-soft);--on-accent:var(--on-own);--c-accent:var(--c-own)}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -90,9 +94,12 @@ label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4
 .formgrid.goalform{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
 
 /* tabs */
-.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tabs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px minmax(0,1fr);gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
 .tabs button{border:0;background:none;border-radius:999px;padding:10px 4px;font-weight:600;font-size:14px;color:var(--muted);white-space:nowrap;transition:background .2s,color .2s}
 .tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent)}
+.tabs.four{grid-template-columns:auto auto minmax(0,1fr) auto}
+.tabs.four button{font-size:13px;padding-inline:9px;overflow:hidden;text-overflow:ellipsis}
+.tabs .plus{font-size:20px;line-height:1;padding-block:7px}
 
 /* counter hero */
 .hero{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
@@ -148,6 +155,25 @@ label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4
 .qrow span:first-child{color:var(--muted)}
 .lapses .tag{box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
 
+/* week review, risk hint, achievements, buddy */
+.weekline{font-family:var(--display);font-weight:800;font-size:20px;line-height:1.2;text-wrap:balance}
+.qrow span:last-child{text-align:right}
+.risk{border-left-color:var(--danger)}
+.riskplan{background:var(--accent-soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:14px}
+.achs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.achs li{border:1px dashed var(--line);border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;color:var(--muted);min-width:0}
+.achs li.got{border:1px solid var(--accent);background:var(--accent-soft);color:var(--fg)}
+.ach-t{font-weight:700;font-size:14px;line-height:1.25}
+.ach-ic{font-weight:800;color:var(--accent);grid-row:1;grid-column:2}
+.ach-d{font-size:12px;line-height:1.3;grid-column:1/-1}
+a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;color:inherit}
+.buddy{justify-content:center}
+.toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:50;border:0;border-radius:14px;padding:10px 18px;
+  background:var(--fg);color:var(--bg);display:flex;flex-direction:column;align-items:center;gap:1px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100vw - 32px);animation:down .3s ease-out}
+.toast .eyebrow{color:inherit;opacity:.7;font-size:11px}
+.toast b{font-size:15px}
+@keyframes down{from{transform:translate(-50%,-20px);opacity:.3}to{transform:translateX(-50%);opacity:1}}
+
 /* reasons and plans */
 .reasons,.plans{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .reasons li,.plans li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
@@ -198,6 +224,8 @@ label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4
 .seg button{border:0;background:none;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg)}
 .seg.two{display:grid;grid-template-columns:1fr 1fr}
+.seg.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.seg.three button{padding-inline:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .seg button.neg[aria-pressed="true"]{background:transparent;color:var(--danger);box-shadow:inset 0 0 0 1.5px var(--danger)}
 .lvls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .lvls button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 0;font-weight:700;font-family:var(--mono)}
@@ -277,8 +305,10 @@ details .formgrid+.btn{margin-top:10px}
   margin:0 auto;max-width:440px;z-index:12;background:var(--fg);color:var(--bg);border-radius:14px;padding:12px 16px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:up .25s ease-out}
 
 /* breathing layer */
-.overlay{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;overflow-y:auto;
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;overflow-y:auto;
   padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+.overlay>:first-child{margin-top:auto}
+.overlay>:last-child{margin-bottom:auto}
 .ovl-title{font-family:var(--display);font-weight:800;font-size:30px;transition:opacity .35s ease}
 .ovl-title.fade{opacity:0}
 .ovl-sub{color:var(--muted);max-width:32ch}
@@ -290,6 +320,7 @@ details .formgrid+.btn{margin-top:10px}
 .modes button[aria-pressed="true"]{border-color:var(--accent);color:var(--fg);background:var(--accent-soft)}
 .modenote{font-size:12px;color:var(--muted);max-width:34ch;margin-top:-6px}
 .bstage{position:relative;width:min(250px,62vw);aspect-ratio:1;max-width:100%;flex:none;display:grid;place-items:center}
+@media (max-height:880px){.overlay,.ovl-part{gap:13px}.bstage{width:min(205px,54vw)}}
 @media (max-height:700px){.bstage{width:min(180px,50vw)}}
 .bstage svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
 .btrack{fill:none;stroke:var(--line);stroke-width:2}
@@ -357,16 +388,13 @@ details .formgrid+.btn{margin-top:10px}
 <body class="th-vape">
 
 <div class="wrap">
-  <nav class="tabs" role="tablist" aria-label="Bereiche">
-    <button role="tab" data-act="tab" data-tab="vape" aria-selected="true">Vape-frei</button>
-    <button role="tab" data-act="tab" data-tab="alc" aria-selected="false">Alkoholfrei</button>
-    <button role="tab" data-act="tab" data-tab="stats" aria-selected="false">Fortschritt</button>
-  </nav>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Bereiche"></nav>
   <main id="view"></main>
 </div>
 
 <button class="sos" id="sos" data-act="sos">Craving? Tippen</button>
 <div class="snack" id="snack" role="status" aria-live="polite" hidden></div>
+<button class="toast" id="toast" data-act="toast-open" hidden><span class="eyebrow">Neuer Erfolg</span><b id="toast-t"></b></button>
 
 <div class="overlay th-vape" id="overlay" hidden>
   <p class="eyebrow" id="ovl-eyebrow">Craving-Modus</p>
@@ -394,6 +422,7 @@ details .formgrid+.btn{margin-top:10px}
   <p class="ovl-timer" id="ovl-timer">3:00</p>
   <p class="ovl-sub" id="ovl-sub"></p>
   <div class="ovl-reason" id="ovl-reason" hidden><span class="eyebrow" id="ovl-item-label">Warum du aufhörst</span><p id="ovl-reason-text"></p></div>
+  <div class="actions buddy" id="ovl-buddy" hidden></div>
   <button class="btn primary" id="ovl-close" data-act="ovl-close">Geschafft</button>
 </div>
 
@@ -418,7 +447,7 @@ details .formgrid+.btn{margin-top:10px}
 "use strict";
 const KEY="clean-streak-v1";
 const MIN=60e3,H=3600e3,D=864e5,WK=7*D;
-const KS=["vape","alc"];
+const KS=["vape","alc","own"];  // own: one counter the user names themselves, only shown when S.ownOn
 
 const CFG={
   vape:{
@@ -491,6 +520,31 @@ const CFG={
     ]
   }
 };
+CFG.own={
+  name:"Eigener Counter",short:"Eigenes",word:"clean",perWeek:0,
+  unset:{h:"Seit wann?",note:"Stell ein, wann es das letzte Mal war, oder starte jetzt.",label:"Das letzte Mal"},
+  sos:"Craving? Tippen",ovl:"Durchhalte-Modus",why:"Warum du es lässt",
+  reasonNote:"Schreib auf, warum du damit aufhören willst. Deine Gründe erscheinen auch im Durchhalte-Modus. Mehrere auf einmal: einfach einfügen, ein Grund pro Absatz.",
+  planPh:["mich die Lust packt","gehe ich kurz raus und trinke ein Glas Wasser"],
+  timeline:[],
+  facts:[
+    "Ein Craving dauert meistens nur ein paar Minuten. Wenn du es aussitzt, wird das nächste schwächer.",
+    "Gewohnheiten hängen an Auslösern: ein Ort, eine Uhrzeit, ein Gefühl. Wer seine Auslöser kennt, ist ihnen einen Schritt voraus.",
+    "Ein Wenn-Dann-Plan nimmt dir die Entscheidung im schwierigen Moment ab.",
+    "Jeder Tag ohne macht die alte Gewohnheit schwächer und die neue stärker.",
+    "Ein Ausrutscher ist kein Scheitern. Er zeigt dir, wo dein Plan noch eine Lücke hat."
+  ],
+  msg:{},
+  triggers:[
+    ["stress","Stress","ich gestresst bin"],
+    ["bored","Langeweile","mir langweilig ist"],
+    ["habit","Gewohnheit / Ort","ich in der gewohnten Situation bin"],
+    ["friends","Andere machen es","andere es vor mir machen"],
+    ["reward","Belohnung","ich mich belohnen will"],
+    ["mood","Schlechte Laune","ich schlecht drauf bin"],
+    ["tired","Müde","ich müde bin"]
+  ]
+};
 const MILESTONES=[
   [H,"1","Stunde","Die erste Stunde ist geschafft. Jede weitere zählt."],
   [D,"1","Tag","Ein ganzer Tag! Der Anfang ist das Schwerste, und du bist mittendrin."],
@@ -510,17 +564,29 @@ const BLOCKS=[["Früh","5–9","früh morgens",5,9],["Vormittag","9–12","vormi
 /* start: begin of the current run (since the last slip). since: very first start. lapses: slips {t: when, e: clean again from}.
    bank: money offset, so changing the weekly cost does not rewrite the past. best: record from before lapses were stored. */
 function counter(perWeek){return {start:null,since:null,lapses:[],best:0,slips:0,perWeek,bank:0,cel:0}}
-function defaults(){return {v:3,tab:"vape",breath:"calm",statsK:"vape",vape:counter(CFG.vape.perWeek),alc:counter(CFG.alc.perWeek),
-  reasons:{vape:[],alc:[]},plans:{vape:[],alc:[]},log:[],fit:[],fitGoal:{rhr:55,vo2:55},goal:null,goalsDone:[],spent:0,backupAt:null,news:4,sosKind:"breathe",gameBest:0}}
+function defaults(){return {v:4,tab:"vape",breath:"calm",statsK:"vape",vape:counter(CFG.vape.perWeek),alc:counter(CFG.alc.perWeek),own:counter(0),ownOn:false,ownName:"",
+  reasons:{vape:[],alc:[],own:[]},plans:{vape:[],alc:[],own:[]},log:[],fit:[],fitGoal:{rhr:55,vo2:55},goal:null,goalsDone:[],spent:0,backupAt:null,news:5,sosKind:"breathe",gameBest:0,
+  buddy:null,ach:null,weekSeen:null,riskHide:null}}
+/* Names typed by the user end up in many templates, so they never contain markup characters. */
+function cleanName(x){return String(x==null?"":x).replace(/[<>&"'`]/g,"").replace(/\s+/g," ").trim().slice(0,20)}
+function cleanTel(x){return String(x==null?"":x).replace(/[^\d+]/g,"").slice(0,20)}
+function applyOwn(){
+  const n=S.ownName||"…",o=CFG.own;
+  o.name="Ohne "+n;o.short=n;o.word="ohne "+n;o.unset.h=`Seit wann ohne ${n}?`;
+}
 const isNum=x=>typeof x==="number"&&isFinite(x);
 function migrate(p){
   const s=defaults(),legacy=[];
   if(!p||typeof p!=="object")return s;
-  if(["vape","alc","stats"].includes(p.tab))s.tab=p.tab;
+  if(["vape","alc","own","stats"].includes(p.tab))s.tab=p.tab;
+  s.ownName=cleanName(p.ownName);s.ownOn=p.ownOn===true&&!!s.ownName;
+  if(p.buddy&&typeof p.buddy==="object"){const b={name:cleanName(p.buddy.name),tel:cleanTel(p.buddy.tel)};if(b.name&&b.tel.length>=5)s.buddy=b}
+  if(Array.isArray(p.ach))s.ach=p.ach.filter(x=>typeof x==="string").slice(0,60);
+  for(const f of ["weekSeen","riskHide"])if(typeof p[f]==="string")s[f]=p[f].slice(0,40);
   if(["calm","sigh","box"].includes(p.breath))s.breath=p.breath;
   if(p.sosKind==="play")s.sosKind="play";
   if(isNum(p.gameBest)&&p.gameBest>0)s.gameBest=Math.min(36,Math.floor(p.gameBest));
-  if(KS.includes(p.statsK))s.statsK=p.statsK;
+  if(KS.includes(p.statsK)&&(p.statsK!=="own"||s.ownOn))s.statsK=p.statsK;
   if(isNum(p.backupAt))s.backupAt=p.backupAt;
   s.news=isNum(p.news)?p.news:1;
   if(isNum(p.spent)&&p.spent>0)s.spent=p.spent;
@@ -565,9 +631,10 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 let S=defaults();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 try{const raw=localStorage.getItem(KEY);if(raw){S=migrate(JSON.parse(raw));save()}}catch(e){}
+applyOwn();
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{})}catch(e){}
 
-const ui={panel:null,factIdx:{vape:0,alc:0},sheet:null,resetLogged:null,resetTime:null,resetTrg:null,slipKind:"once",slipFrom:null,slipTime:null,planTrg:null,bilDay:null,
+const ui={achAt:0,panel:null,factIdx:{vape:0,alc:0,own:0},sheet:null,resetLogged:null,resetTime:null,resetTrg:null,slipKind:"once",slipFrom:null,slipTime:null,planTrg:null,bilDay:null,
   goalEdit:false,goalReached:null,backup:null,restore:null,logAll:false};
 for(const k of KS)ui.factIdx[k]=Math.floor(Math.random()*CFG[k].facts.length);
 
@@ -594,7 +661,9 @@ const fmtLeft=ms=>{const d=Math.floor(ms/D),h=Math.floor(ms%D/H),m=Math.floor(ms
 const fmtLong=ms=>{const d=Math.floor(ms/D),h=Math.floor(ms%D/H),m=Math.floor(ms%H/MIN);
   const pl=(n,a,b)=>n+" "+(n===1?a:b);if(d)return pl(d,"Tag","Tage")+(h?" und "+pl(h,"Stunde","Stunden"):"");if(h)return pl(h,"Stunde","Stunden");return pl(m,"Minute","Minuten")};
 const whenLabel=ms=>{if(ms<H)return Math.round(ms/MIN)+" Min";if(ms<D)return Math.round(ms/H)+" Std";if(ms<30*D){const d=Math.round(ms/D);return d+(d===1?" Tag":" Tagen")}if(ms<365*D)return Math.round(ms/(30*D))+" Monaten";return "1 Jahr"};
-const ctxK=()=>S.tab==="alc"?"alc":"vape";
+const ctxK=()=>S.tab==="alc"?"alc":S.tab==="own"&&S.ownOn?"own":"vape";
+const activeK=()=>KS.filter(k=>k!=="own"||S.ownOn);
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
 function highestReached(ms){let r=null;for(const m of MILESTONES)if(m[0]<=ms)r=m;return r}
 /* A slip costs at least one day, or the whole time when someone started again for a while.
    Slips that overlap count once. The cost is taken off right away, but never below the current run. */
@@ -620,7 +689,7 @@ function quoteOf(c,now,days){
   return {n,c:Math.min(n,Math.floor(cl/D)),pct:span>0?Math.floor(cl/span*100):100};
 }
 function savedK(k,now){now=now||Date.now();const c=S[k];let v=+c.bank||0;if(c.since!=null)v+=(+c.perWeek||0)*cleanOf(c,now)/WK;return Math.max(0,v)}
-const savedTotal=now=>savedK("vape",now)+savedK("alc",now);
+const savedTotal=now=>KS.reduce((a,k)=>a+savedK(k,now),0);
 const available=now=>Math.max(0,savedTotal(now)-(+S.spent||0));
 const ratePerWeek=()=>KS.reduce((a,k)=>a+(S[k].start!=null?(+S[k].perWeek||0):0),0);
 const logFor=k=>S.log.filter(e=>e.k===k).sort((a,b)=>b.t-a.t);
@@ -652,26 +721,76 @@ function syncSlip(){
 function render(){
   const tab=S.tab;
   document.body.className="th-"+(tab==="stats"?"fit":tab);
-  $$(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===tab)));
+  const tb=(id,label,extra)=>`<button role="tab" data-act="tab" data-tab="${id}" aria-selected="${tab===id}"${extra||""}>${label}</button>`;
+  const nav=$("#tabs");nav.classList.toggle("four",S.ownOn);
+  nav.innerHTML=tb("vape","Vape-frei")+tb("alc","Alkoholfrei")+(S.ownOn?tb("own",esc(S.ownName)):tb("own","+",' class="plus" aria-label="Eigenen Counter hinzufügen"'))+tb("stats","Fortschritt");
   $("#sos").textContent=CFG[ctxK()].sos;
-  $("#view").innerHTML=newsCard()+(tab==="stats"?statsView():counterView(tab));
+  const news=newsCard();
+  $("#view").innerHTML=news+(tab==="stats"?statsView():(news||(KS.includes(tab)&&riskCard(tab))?"":weekPrompt())+(tab==="own"&&!S.ownOn?ownSetupView():counterView(tab)));
   if(tab==="stats")drawCharts();
-  tick();
+  tick();checkAch();
 }
 
 function newsCard(){
-  if(S.news>=4)return "";
-  const old=S.news<3,had=old&&KS.some(k=>S[k].lapses.length);
+  const v=S.news;if(v>=5)return "";
+  const had=v<3&&KS.some(k=>S[k].lapses.length);
   return `<section class="news" aria-label="Neu in der App">
     <p class="eyebrow">Update</p>
     <p class="cardtitle">Neu in deiner App</p>
     <ul>
-      <li><b>Spielen statt Atmen:</b> Im Craving-Modus kannst du jetzt auch „Sternbild“ spielen. Merk dir, wo die Sterne leuchten, und tipp sie an. Das lenkt dein Kopfkino ab.</li>
-      <li><b>Als Bild teilen:</b> Dein Stand oder ein Meilenstein als Bild für Story oder WhatsApp. Nur deine Tage, keine Gründe, kein Tagebuch.</li>
-      ${old?"<li><b>Ausrutscher statt Neustart:</b> Ein Ausrutscher kostet dich einen Tag, nicht alles. Deine Bilanz zeigt die letzten 30 Tage.</li>":""}
+      <li><b>Wochenrückblick:</b> Unter „Fortschritt“ siehst du deine letzten 7 Tage auf einen Blick. Sonntags erinnert dich die App daran.</li>
+      <li><b>Schwierige Zeiten:</b> Die App erkennt aus deinem Tagebuch, wann es dich oft packt, und zeigt dir dann deinen Plan.</li>
+      <li><b>Eigener Counter:</b> Über das „+“ oben legst du einen dritten Counter an, zum Beispiel für Energy-Drinks.</li>
+      <li><b>Erfolge:</b> Sammle Abzeichen fürs Dranbleiben, zu finden unter „Fortschritt“.</li>
+      <li><b>Buddy:</b> Trag jemanden ein, den du im Craving-Modus mit einem Tipp anrufen kannst.</li>
+      ${v<4?"<li><b>Spielen und Teilen:</b> Im Craving-Modus gibt es das Merkspiel „Sternbild“, und deinen Stand kannst du als Bild teilen.</li>":""}
+      ${v<3?"<li><b>Ausrutscher statt Neustart:</b> Ein Ausrutscher kostet dich einen Tag, nicht alles. Deine Bilanz zeigt die letzten 30 Tage.</li>":""}
       ${had?"<li>Deine früheren Ausrutscher hat die App aus dem Tagebuch übernommen. Schau kurz in der Bilanz nach, ob sie stimmen.</li>":""}
     </ul>
     <div class="actions"><button class="btn primary" data-act="news-ok">Alles klar</button></div>
+  </section>`;
+}
+function weekPrompt(){
+  const now=Date.now();if(new Date(now).getDay()!==0||S.weekSeen===dayKey(now)||!activeK().some(k=>S[k].since!=null))return "";
+  return `<section class="news" aria-label="Wochenrückblick">
+    <p class="eyebrow">Sonntag</p>
+    <p class="cardtitle">Dein Wochenrückblick ist da</p>
+    <div class="actions"><button class="btn primary" data-act="week-open">Ansehen</button><button class="btn" data-act="week-ok">Später</button></div>
+  </section>`;
+}
+function ownSetupView(){
+  return `<div class="unset">
+    <p class="eyebrow">Eigener Counter</p>
+    <h2>Was willst du noch lassen?</h2>
+    <p class="note">Zum Beispiel Energy-Drinks, Zucker, Kiffen oder Zocken bis nachts. Der Counter kann alles, was die anderen auch können.</p>
+    <div class="card">
+      <label for="own-name">Ohne …<input id="own-name" type="text" maxlength="20" placeholder="Energy-Drinks" data-enter="own-add"></label>
+      <label for="own-cost">Was kostet dich das pro Woche? (€, optional)<input id="own-cost" type="text" inputmode="decimal" autocomplete="off" placeholder="0" data-enter="own-add"></label>
+      <p class="formerr" id="own-err" role="alert"></p>
+      <div class="actions"><button class="btn primary" data-act="own-add">Counter anlegen</button></div>
+    </div></div>`;
+}
+/* The time of day with the most cravings in the last 60 days, if it is now or starts within the hour. */
+function riskInfo(k,now){
+  const L=S.log.filter(e=>e.k===k&&e.t>now-60*D);if(L.length<4)return null;
+  const bl=e=>blockOf(new Date(e.t).getHours()),bc=BLOCKS.map(()=>0);L.forEach(e=>{bc[bl(e)]++});
+  let top=0;bc.forEach((n,i)=>{if(n>bc[top])top=i});
+  if(bc[top]<3||bc[top]/L.length<.3)return null;
+  const d=new Date(now),h=d.getHours()+d.getMinutes()/60,hh=top===5&&h<5?h+24:h,a=BLOCKS[top][3],b=BLOCKS[top][4];
+  if(hh<a-1||hh>=b)return null;
+  const tc={};L.forEach(e=>{if(bl(e)===top&&e.trg)tc[e.trg]=(tc[e.trg]||0)+1});
+  const t=Object.entries(tc).sort((x,y)=>y[1]-x[1])[0];
+  return {i:top,soon:hh<a,trg:t?t[0]:null};
+}
+function riskCard(k){
+  const now=Date.now(),r=riskInfo(k,now);if(!r)return "";
+  const key=dayKey(now)+":"+k+":"+r.i;if(S.riskHide===key)return "";
+  const B=BLOCKS[r.i],P=S.plans[k],plan=(r.trg&&P.find(p=>p.trg===r.trg))||P[0],ti=r.trg?trgInfo(k,r.trg):null;
+  return `<section class="news risk" aria-label="Hinweis">
+    <p class="eyebrow">${r.soon?"Gleich":"Jetzt"} wird es oft schwierig</p>
+    <p>${cap(B[2])} (${B[1]} Uhr) hattest du bisher die meisten Cravings${ti?`, oft wegen <b>${esc(ti.label)}</b>`:""}. Gut, dass du es vorher weißt.</p>
+    ${plan?`<p class="riskplan"><span class="eyebrow">Dein Plan</span>${esc(planText(plan))}</p>`:`<p class="note">Leg dir einen Wenn-Dann-Plan zurecht, dann musst du im Moment selbst nicht überlegen.</p>`}
+    <div class="actions">${!plan&&r.trg?`<button class="btn primary" data-act="plan-for" data-k="${k}" data-trg="${esc(r.trg)}">Plan anlegen</button>`:""}<button class="btn" data-act="risk-ok" data-key="${esc(key)}">Okay</button></div>
   </section>`;
 }
 
@@ -695,7 +814,7 @@ function counterView(k){
   const won=S.log.filter(e=>e.k===k&&e.ok).length;
   const badges=MILESTONES.map(m=>`<div class="badge" data-ms="${m[0]}"><div class="n">${m[1]}</div><div class="l">${m[2]}</div></div>`).join("");
   const tl=cfg.timeline.map(([ms,t])=>`<li data-ms="${ms}"><span class="dot"></span><div><div class="tl-when">nach ${whenLabel(ms)}</div><div class="tl-text">${t}</div></div></li>`).join("");
-  return `
+  return `${riskCard(k)}
   <div class="hero">
     <p class="eyebrow">${cfg.name} ${hasL?"insgesamt":"seit"}</p>
     <div class="ringbox">
@@ -716,15 +835,17 @@ function counterView(k){
   <div class="fact"><p id="fact">${cfg.facts[ui.factIdx[k]]}</p><button data-act="next-fact">Noch ein Fakt</button></div>
   ${reasonsSec(k)}
   ${plansSec(k)}
-  <h3>Was in deinem Körper passiert</h3>
+  ${buddySec()}
+  ${cfg.timeline.length?`<h3>Was in deinem Körper passiert</h3>
   ${hasL?`<p class="note">Gezählt ab deinem letzten Ausrutscher.</p>`:""}
-  <ul class="timeline" id="tl">${tl}</ul>
+  <ul class="timeline" id="tl">${tl}</ul>`:""}
   <h3>Meilensteine</h3>
   <div class="badges" id="badges">${badges}</div>
   <div class="actions">
     <button class="btn" data-act="log-open" data-k="${k}">Craving notieren</button>
     <button class="btn" data-act="panel" data-p="edit">Startzeit ändern</button>
     <button class="btn" data-act="panel" data-p="money">Kosten pro Woche</button>
+    ${k==="own"?`<button class="btn" data-act="panel" data-p="own">Counter bearbeiten</button>`:""}
     <button class="btn warn" data-act="panel" data-p="reset">Ausrutscher</button>
   </div>
   <div id="panel">${panelHtml(k)}</div>`;
@@ -769,6 +890,22 @@ function bilanzSec(k){
   </div></section>`;
 }
 
+function buddySec(){
+  const b=S.buddy;
+  return `<section class="sec" id="sec-buddy"><h3>Mein Buddy</h3>
+    ${b?`<div class="card"><div class="goalrow"><p class="cardtitle">${esc(b.name)}</p><button class="rdel" data-act="buddy-del" aria-label="Buddy entfernen">×</button></div>
+      <p class="note">Im ${CFG[ctxK()].ovl} kannst du ${esc(b.name)} mit einem Tipp anrufen oder anschreiben.</p>
+      <div class="actions"><a class="btn" href="tel:${b.tel}">Anrufen</a><a class="btn" href="sms:${b.tel}">Schreiben</a></div></div>`
+    :`<p class="note">Wen kannst du anrufen oder anschreiben, wenn es hart wird? Name und Nummer bleiben auf diesem Handy und stehen sonst nur in deinem Backup-Code.</p>
+      <div class="planform">
+        <label for="buddy-name">Name<input id="buddy-name" type="text" maxlength="20" autocomplete="off" placeholder="z. B. Jonas" data-enter="buddy-save"></label>
+        <label for="buddy-tel">Handynummer<input id="buddy-tel" type="tel" maxlength="24" autocomplete="off" placeholder="0151 2345678" data-enter="buddy-save"></label>
+        <p class="formerr" id="buddy-err" role="alert"></p>
+        <button class="btn primary" data-act="buddy-save">Buddy speichern</button>
+      </div>`}
+  </section>`;
+}
+
 function reasonsSec(k){
   const R=S.reasons[k];
   return `<section class="sec" id="sec-reasons"><h3>Meine Gründe</h3>
@@ -802,6 +939,10 @@ function panelHtml(k){
       <div class="actions"><button class="btn primary" data-act="edit-save">Speichern</button><button class="btn" data-act="panel" data-p="edit">Abbrechen</button></div>
       <p class="note">Zählt nicht als Ausrutscher. Nur zum Korrigieren.${c.lapses.length?" Gemeint ist dein allererster Start, vor deinem ersten Ausrutscher.":""}</p></div>`;
   }
+  if(ui.panel==="own")return `<div class="panel"><label for="own-rename">Name (ohne …)<input id="own-rename" type="text" maxlength="20" value="${esc(S.ownName)}" data-enter="own-save"></label>
+      <p class="formerr" id="own-err" role="alert"></p>
+      <div class="actions"><button class="btn primary" data-act="own-save">Speichern</button><button class="linkbtn warn" data-act="own-del">Counter entfernen</button></div>
+      <p class="note">Entfernen löscht diesen Counter mit seinen Gründen, Plänen und Tagebuch-Einträgen.</p></div>`;
   if(ui.panel==="money")return `<div class="panel"><label for="money-input">Was hast du dafür pro Woche ausgegeben? (€)<input id="money-input" type="text" inputmode="decimal" autocomplete="off" value="${fmtAuto(+c.perWeek||0)}" data-enter="money-save"></label>
       <p class="formerr" id="money-err" role="alert"></p>
       <div class="actions"><button class="btn primary" data-act="money-save">Speichern</button></div></div>`;
@@ -809,7 +950,7 @@ function panelHtml(k){
   const chips=CFG[k].triggers.map(t=>`<button class="chip" data-act="reset-trg" data-v="${t[0]}" aria-pressed="${ui.resetTrg===t[0]}">${t[1]}</button>`).join("");
   const from=ui.slipFrom||(ui.resetLogged?ui.resetTime:Math.max(c.since,now-D));
   const when=multi?`<label for="slip-from">Seit wann?<input id="slip-from" type="datetime-local" value="${toLocalInput(from)}" min="${toLocalInput(c.since)}" max="${toLocalInput(now)}"></label>
-      <p class="note">Die Zeit seitdem zählt nicht als ${w}, mindestens aber ein Tag. Alles davor bleibt. Ab jetzt läuft eine neue Serie.</p>`
+      <p class="note">Die Zeit seitdem zählt nicht mit, mindestens aber ein Tag. Alles davor bleibt. Ab jetzt läuft eine neue Serie.</p>`
     :ui.resetLogged?"":`<details class="field"><summary>Zeitpunkt: ${ui.slipTime?esc(fmtDate(ui.slipTime)):"gerade eben"}</summary>
       <input id="slip-time" type="datetime-local" value="${toLocalInput(ui.slipTime||now)}" min="${toLocalInput(c.since)}" max="${toLocalInput(now)}" aria-label="Zeitpunkt"></details>`;
   return `<div class="panel"><p><b>Passiert. Kein Drama.</b> ${tot>=D?`Deine ${fmtLong(tot)} ${w} sind nicht weg. `:""}Ein Ausrutscher kostet dich einen Tag, nicht alles. Dein Rekord bleibt.</p>
@@ -823,24 +964,100 @@ function panelHtml(k){
 function renderPanel(){const p=$("#panel");if(p)p.innerHTML=panelHtml(S.tab)}
 
 /* ---------- Fortschritt ---------- */
+function weekSec(){
+  const now=Date.now(),A=activeK().filter(k=>S[k].since!=null);if(!A.length)return "";
+  const w0=now-7*D,w1=now-14*D,rows=[];
+  let slips=0,full=true,money=0;
+  for(const k of A){
+    const c=S[k],q=quoteOf(c,now,7);
+    slips+=c.lapses.filter(l=>l.e>w0).length;if(q.n<7||q.c<7)full=false;
+    money+=(+c.perWeek||0)*cleanOf(c,now,w0)/WK;
+    rows.push([CFG[k].name,q.n>=1?`<b>${q.c} von ${q.n}</b> ${q.n===1?"Tag":"Tagen"}`:"gerade gestartet"]);
+  }
+  const L=S.log.filter(e=>A.includes(e.k)),c7=L.filter(e=>e.t>w0),p7=L.filter(e=>e.t<=w0&&e.t>w1).length,won=c7.filter(e=>e.ok).length,dl=c7.length-p7;
+  if(c7.length||p7)rows.push(["Cravings",`<b>${c7.length}</b>${p7?` · ${dl<0?`↓ ${-dl} weniger`:dl>0?`↑ ${dl} mehr`:"gleich viele"}`:""}${c7.length?` · ${won} besiegt`:""}`]);
+  const tc={};c7.forEach(e=>{if(e.trg){const id=e.k+"|"+e.trg;tc[id]=(tc[id]||0)+1}});
+  const top=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
+  if(top){const i=top[0].indexOf("|");rows.push(["Häufigster Auslöser",`<b>${esc(trgInfo(top[0].slice(0,i),top[0].slice(i+1)).label)}</b> (${top[1]}×)`])}
+  if(money>0)rows.push(["Gespart",`<b>${euro(money)}</b>`]);
+  const rhr=fitSeries().rhr,last=rhr[rhr.length-1],prev=last&&last.x>w0?[...rhr].reverse().find(p=>p.x<=w0):null;
+  if(prev){const d=last.y-prev.y;rows.push(["Ruhepuls",`<b>${fmtAuto(last.y)}</b> · ${d<0?"↓ "+fmtAuto(-d)+" runter":d>0?"↑ "+fmtAuto(d)+" rauf":"gleich"}`])}
+  let line=slips?`${slips===1?"Ein Ausrutscher war":slips+" Ausrutscher waren"} dabei. Das gehört dazu, die Woche zählt trotzdem.`
+    :full?"Eine komplette Woche clean. Stark.":"Bis jetzt alles clean. Weiter so.";
+  if(p7&&dl<0)line+=" Und die Cravings werden weniger.";
+  return `<section class="sec" id="sec-week"><h3>Wochenrückblick</h3><div class="card">
+    <p class="eyebrow">Letzte 7 Tage</p>
+    <p class="weekline">${line}</p>
+    ${rows.map(([l,v])=>`<div class="qrow"><span>${l}</span><span>${v}</span></div>`).join("")}
+  </div></section>`;
+}
+/* Achievements: [id, title, what for, reached]. Once reached they stay (ids are kept in S.ach). */
+function achList(now){
+  const A=activeK().filter(k=>S[k].since!=null);
+  const tot=Math.max(0,...A.map(k=>cleanOf(S[k],now))),best=Math.max(0,...A.map(k=>bestOf(S[k],now)));
+  const won=S.log.filter(e=>e.ok).length,days=new Set(S.log.map(e=>dayKey(e.t))).size;
+  const cnt=o=>KS.reduce((a,k)=>a+o[k].length,0);
+  const {rhr,vo2}=fitSeries(),fit=(rhr.length>1&&rhr[rhr.length-1].y<=rhr[0].y-3)||(vo2.length>1&&vo2[vo2.length-1].y>=vo2[0].y+1);
+  const wk=k=>S[k].since!=null&&cleanOf(S[k],now)>=7*D;
+  const list=[
+    ["day1","Erster Tag","24 Stunden clean",tot>=D],
+    ["week","Saubere Woche","7 Tage am Stück",best>=7*D],
+    ["month","Sauberer Monat","30 Tage am Stück",best>=30*D],
+    ["d100","Dreistellig","100 Tage clean",tot>=100*D],
+    ["back","Wieder aufgestanden","3 Tage clean nach einem Ausrutscher",A.some(k=>S[k].lapses.length&&now-S[k].start>=3*D)],
+    ["both","Doppelt clean","Vape und Alkohol je 7 Tage",wk("vape")&&wk("alc")],
+    ["w1","Welle geritten","Erstes Craving besiegt",won>=1],
+    ["w10","Wellenreiter","10 Cravings besiegt",won>=10],
+    ["w50","Fels in der Brandung","50 Cravings besiegt",won>=50],
+    ["diary","Dranbleiber","An 7 Tagen Tagebuch geführt",days>=7],
+    ["why","Weiß, warum","3 Gründe aufgeschrieben",cnt(S.reasons)>=3],
+    ["plan","Vorbereitet","Ersten Wenn-Dann-Plan angelegt",cnt(S.plans)>=1],
+    ["buddy","Nicht allein","Buddy eingetragen",!!S.buddy],
+    ["e50","Sparfuchs","50 € gespart",savedTotal(now)>=50],
+    ["goal","Gegönnt","Ein Sparziel gekauft",S.goalsDone.length>=1],
+    ["star","Sternengucker","Level 5 im Sternbild",(S.gameBest||0)>=7],
+    ["fit","Fitter","Ruhepuls 3 runter oder VO2max 1 rauf",fit]
+  ];
+  const kept=S.ach||[];list.forEach(a=>{if(kept.includes(a[0]))a[3]=true});
+  return list;
+}
+let toastT=null;
+function checkAch(){
+  const now=Date.now();ui.achAt=now;
+  const got=achList(now).filter(a=>a[3]);
+  if(S.ach==null){S.ach=got.map(a=>a[0]);save();return}
+  const fresh=got.filter(a=>!S.ach.includes(a[0]));if(!fresh.length)return;
+  S.ach.push(...fresh.map(a=>a[0]));save();
+  $("#toast-t").textContent=fresh[0][1]+(fresh.length>1?` und ${fresh.length-1} mehr`:"");
+  const el=$("#toast");el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true},4500);
+  const sec=$("#sec-ach");if(sec)sec.outerHTML=achSec();
+}
+function achSec(){
+  const L=achList(Date.now()),n=L.filter(a=>a[3]).length;
+  L.sort((a,b)=>(b[3]?1:0)-(a[3]?1:0));
+  return `<section class="sec" id="sec-ach"><div class="sechead"><h3>Erfolge</h3><p class="note">${n} von ${L.length}</p></div>
+    <ul class="achs">${L.map(a=>`<li class="${a[3]?"got":""}"><span class="ach-t">${a[1]}</span><span class="ach-ic" aria-hidden="true">${a[3]?"✓":""}</span><span class="ach-d">${a[2]}</span></li>`).join("")}</ul>
+  </section>`;
+}
 function statsView(){
-  const k=S.statsK;
+  const A=activeK(),k=A.includes(S.statsK)?S.statsK:"vape";
   return `<header class="pagehead"><h2>Fortschritt</h2><p class="note">Alles bleibt nur auf diesem Handy gespeichert.</p></header>
+  ${weekSec()}
   <section class="card" id="goal-card">${goalCard()}</section>
   <section class="sec" id="sec-diary">
     <div class="sechead"><h3>Craving-Tagebuch</h3>
-      <div class="seg" role="group" aria-label="Tagebuch anzeigen für">${KS.map(x=>`<button data-act="stats-k" data-k="${x}" aria-pressed="${x===k}">${CFG[x].short}</button>`).join("")}</div>
+      <div class="seg" role="group" aria-label="Tagebuch anzeigen für">${A.map(x=>`<button data-act="stats-k" data-k="${x}" aria-pressed="${x===k}">${CFG[x].short}</button>`).join("")}</div>
     </div>
     <div class="sec" style="--c-ent:var(--c-${k})">${diaryView(k)}</div>
   </section>
+  ${achSec()}
   <section class="sec" id="sec-fit" style="--c-ent:var(--c-fit)"><h3>Fitness</h3>${fitView()}</section>
   <section class="sec" id="sec-backup"><h3>Backup</h3><div id="backup-box">${backupView()}</div></section>`;
 }
 
 function breakdown(now){
-  const v=savedK("vape",now),a=savedK("alc",now);
-  let s=`Insgesamt gespart: <b>${euro(v+a)}</b>`;
-  const parts=[];if(S.vape.start!=null||S.vape.bank)parts.push("Vape "+euro(v));if(S.alc.start!=null||S.alc.bank)parts.push("Alkohol "+euro(a));
+  let s=`Insgesamt gespart: <b>${euro(savedTotal(now))}</b>`;
+  const parts=[];for(const k of KS){const v=savedK(k,now);if((S[k].start!=null||S[k].bank)&&(k!=="own"||v>0))parts.push(CFG[k].short+" "+euro(v))}
   if(parts.length>1)s+=` (${parts.join(", ")})`;
   if(S.spent>0)s+=`. Davon schon ausgegeben: ${euro(S.spent)}`;
   return s+".";
@@ -1018,7 +1235,7 @@ function fillTip(tip,strong,lines){
 }
 function drawCharts(){
   tipHiders.length=0;
-  const d=$("#ch-days");if(d)dayChart(d,S.statsK);
+  const d=$("#ch-days");if(d)dayChart(d,activeK().includes(S.statsK)?S.statsK:"vape");
   const {rhr,vo2}=fitSeries(),mk=S.vape.since!=null?{x:S.vape.since,label:"vape-frei"}:null;
   const r=$("#ch-rhr");if(r)lineChart(r,rhr,{goal:S.fitGoal.rhr,unit:"bpm",name:"Ruhepuls",empty:"Noch kein Ruhepuls eingetragen.",marker:mk});
   const v=$("#ch-vo2");if(v)lineChart(v,vo2,{goal:S.fitGoal.vo2,unit:"",name:"VO2max",empty:"Noch kein VO2max eingetragen.",marker:mk});
@@ -1106,6 +1323,7 @@ window.addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(S
 /* ---------- live updates ---------- */
 function tick(){
   const now=Date.now();
+  if(now-ui.achAt>30e3&&$("#overlay").hidden&&$("#sheet").hidden)checkAch();
   if(S.tab==="stats"){liveGoal(now);return}
   const k=S.tab,c=S[k];if(c.start==null)return;
   const el=$("#days");if(!el)return;
@@ -1183,7 +1401,7 @@ function renderSheet(){
   $("#sheet-body").innerHTML=`
     <div class="sheet-head"><h2 id="sheet-title">${s.src==="sos"?"Stark! Kurz notieren?":"Craving notieren"}</h2><button class="x" data-act="sheet-close" aria-label="Schließen">×</button></div>
     ${s.src==="sos"?`<p class="note">Dauert 10 Sekunden und zeigt dir später deine Muster.</p>`:""}
-    <div class="field"><span class="flabel" id="k-l">Wofür?</span><div class="seg two" role="group" aria-labelledby="k-l">${KS.map(x=>`<button data-act="sheet-k" data-k="${x}" aria-pressed="${x===k}">${CFG[x].short}</button>`).join("")}</div></div>
+    <div class="field"><span class="flabel" id="k-l">Wofür?</span><div class="seg ${activeK().length>2?"three":"two"}" role="group" aria-labelledby="k-l">${activeK().map(x=>`<button data-act="sheet-k" data-k="${x}" aria-pressed="${x===k}">${CFG[x].short}</button>`).join("")}</div></div>
     <div class="field"><span class="flabel" id="lvl-l">Wie stark war es?</span>
       <div class="lvls" role="group" aria-labelledby="lvl-l">${[1,2,3,4,5].map(v=>`<button data-act="sheet-lvl" data-v="${v}" aria-pressed="${s.lvl===v}">${v}</button>`).join("")}</div>
       <div class="lvlhint" aria-hidden="true"><span>leicht</span><span>heftig</span></div></div>
@@ -1266,7 +1484,7 @@ async function drawShare(o){
   const story=o.fmt==="story",W=1080,Hh=story?1920:1080;
   const cv=document.createElement("canvas");cv.width=W;cv.height=Hh;const x=cv.getContext("2d");
   try{await Promise.race([Promise.all(['800 200px "Bricolage Grotesque"','500 60px "Bricolage Grotesque"','600 40px "Figtree"','700 40px "Figtree"'].map(f=>document.fonts.load(f))),new Promise(r=>setTimeout(r,1500))])}catch(e){}
-  const c=S[o.k],now=Date.now(),ms=cleanOf(c,now),A={vape:["#34d399","#11392b"],alc:["#f5a65b","#3b2814"]}[o.k];
+  const c=S[o.k],now=Date.now(),ms=cleanOf(c,now),A={vape:["#34d399","#11392b"],alc:["#f5a65b","#3b2814"],own:["#f48cc4","#3d1c30"]}[o.k];
   const BG="#0d1411",FG="#e8f0eb",MU="#93a39a",DSP='"Bricolage Grotesque", system-ui, sans-serif',BODY='Figtree, system-ui, sans-serif';
   let num,unit,frac=1,eye;
   if(o.m){num=o.m[1];unit=o.m[2];eye="Meilenstein"}
@@ -1290,13 +1508,15 @@ async function drawShare(o){
   x.fillStyle=FG;x.fillText(num,cx,cy+fs*.3-(story?20:14));
   x.fillStyle=MU;x.font=`500 ${story?64:50}px ${DSP}`;x.fillText(unit,cx,cy+R*.52);
   const hy=cy+R+(story?190:130);
-  x.fillStyle=A[0];x.font=`800 ${story?124:96}px ${DSP}`;x.fillText(CFG[o.k].word,cx,hy);
+  let hs=story?124:96;x.fillStyle=A[0];x.font=`800 ${hs}px ${DSP}`;
+  const hw=x.measureText(CFG[o.k].word).width;if(hw>W-140){hs=Math.floor(hs*(W-140)/hw);x.font=`800 ${hs}px ${DSP}`}
+  x.fillText(CFG[o.k].word,cx,hy);
   if(o.money){x.fillStyle=FG;x.font=`600 ${story?48:40}px ${BODY}`;x.fillText(euro(savedK(o.k,now))+" gespart",cx,hy+(story?100:76))}
   x.fillStyle=MU;x.font=`700 ${story?34:28}px ${BODY}`;
   x.fillText("Clean Streak · "+new Date(now).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}),cx,Hh-(story?140:56));
   return cv;
 }
-function shareName(){const s=ui.sheet;return `clean-streak-${s.k==="alc"?"alkoholfrei":"vape-frei"}-${dayKey(Date.now())}.png`}
+function shareName(){const s=ui.sheet;return `clean-streak-${{vape:"vape-frei",alc:"alkoholfrei",own:"eigener-counter"}[s.k]}-${dayKey(Date.now())}.png`}
 
 /* ---------- backup ---------- */
 function makeCode(){
@@ -1424,13 +1644,15 @@ function endSession(){
   $("#ovl-sub").textContent="Stark. Jetzt was trinken, kurz raus oder duschen.";$("#ovl-close").textContent="Weiter";
 }
 function startSos(){
-  $("#snack").hidden=true;
+  $("#snack").hidden=true;$("#toast").hidden=true;
   const k=ctxK(),ov=$("#overlay");
   ov.className="overlay th-"+k;
   $("#ovl-eyebrow").textContent=CFG[k].ovl;
   $("#ovl-close").textContent="Geschafft";
   const now=performance.now();sess={k,t0:now,cycleStart:now,lastPhase:-1,rb:-1,ri:0,items:sosItems(k),kind:S.sosKind==="play"?"play":"breathe",done:false};
   game=null;$("#ggrid").innerHTML="";gMsg("");
+  const bd=$("#ovl-buddy"),B=S.buddy;bd.hidden=!B;
+  bd.innerHTML=B?`<a class="btn" href="tel:${B.tel}">${esc(B.name)} anrufen</a><a class="btn" href="sms:${B.tel}">Schreiben</a>`:"";
   ov.hidden=false;syncLock();setMode(S.breath||"calm");applyKind();if(sess.kind==="play")gNew();
   try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>{wake=w}).catch(()=>{})}catch(e){}
   cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);
@@ -1447,6 +1669,38 @@ const ACT={
   },
   "start-now"(){const c=S[S.tab];c.since=Date.now();c.lapses=[];recalc(c);save();render()},
   "next-fact"(){const k=S.tab,f=CFG[k].facts;ui.factIdx[k]=(ui.factIdx[k]+1)%f.length;$("#fact").textContent=f[ui.factIdx[k]]},
+  "own-add"(){
+    const n=cleanName($("#own-name").value),cs=$("#own-cost").value.trim(),cost=cs?num(cs):0;
+    if(!n){setErr("#own-err","Gib ein, was du lassen willst, z. B. Energy-Drinks.");return}
+    if(!(cost>=0)){setErr("#own-err","Gib die Kosten als Zahl ein oder lass das Feld leer.");return}
+    S.ownName=n;S.ownOn=true;S.own=counter(cost);applyOwn();save();render();
+  },
+  "own-save"(){
+    const n=cleanName($("#own-rename").value);if(!n){setErr("#own-err","Der Name darf nicht leer sein.");return}
+    S.ownName=n;applyOwn();ui.panel=null;save();render();snack("Gespeichert.");
+  },
+  "own-del"(a){
+    if(!arm(a))return;
+    S.ownOn=false;S.ownName="";S.own=counter(0);S.reasons.own=[];S.plans.own=[];S.log=S.log.filter(e=>e.k!=="own");
+    if(S.statsK==="own")S.statsK="vape";S.tab="vape";ui.panel=null;applyOwn();save();render();window.scrollTo(0,0);snack("Counter entfernt.");
+  },
+  "buddy-save"(){
+    const name=cleanName($("#buddy-name").value),tel=cleanTel($("#buddy-tel").value);
+    if(!name){setErr("#buddy-err","Trag einen Namen ein.");return}
+    if(tel.replace(/\D/g,"").length<5){setErr("#buddy-err","Trag eine Telefonnummer ein.");return}
+    S.buddy={name,tel};save();render();snack(`${name} ist jetzt dein Buddy.`);
+  },
+  "buddy-del"(a){if(!arm(a))return;S.buddy=null;save();render()},
+  "risk-ok"(a){S.riskHide=a.dataset.key;save();render()},
+  "week-ok"(){S.weekSeen=dayKey(Date.now());save();render()},
+  "week-open"(){
+    S.weekSeen=dayKey(Date.now());S.tab="stats";ui.panel=null;save();render();
+    const el=$("#sec-week");if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:"smooth",block:"start"}));
+  },
+  "toast-open"(){
+    $("#toast").hidden=true;S.tab="stats";ui.panel=null;save();render();
+    const el=$("#sec-ach");if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:"smooth",block:"start"}));
+  },
   "reason-add"(){const t=$("#reason-input").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);if(!t.length)return;S.reasons[S.tab].push(...t);save();render();snack(t.length>1?t.length+" Gründe hinzugefügt.":"Grund hinzugefügt.")},
   "reason-del"(a){if(!arm(a))return;S.reasons[S.tab].splice(+a.dataset.i,1);save();render()},
   "plan-add"(){
@@ -1561,11 +1815,11 @@ const ACT={
     }catch(e){ui.restore={step:"paste",code,err:e.message}}
     renderBackup();
   },
-  "restore-yes"(){const r=ui.restore;if(!r||!r.data)return;const at=r.at;S=migrate(r.data);S.tab="stats";if(!S.backupAt&&isNum(at))S.backupAt=at;ui.restore=null;ui.backup=null;save();render();window.scrollTo(0,0);snack("Backup wiederhergestellt.")},
+  "restore-yes"(){const r=ui.restore;if(!r||!r.data)return;const at=r.at;S=migrate(r.data);applyOwn();S.tab="stats";if(!S.backupAt&&isNum(at))S.backupAt=at;ui.restore=null;ui.backup=null;save();render();window.scrollTo(0,0);snack("Backup wiederhergestellt.")},
   "restore-cancel"(){ui.restore=null;renderBackup()},
   "cel-close"(){$("#celebrate").hidden=true;syncLock()},
-  "news-ok"(){S.news=4;save();render()},
-  "news-backup"(){S.news=4;S.tab="stats";ui.panel=null;ui.goalEdit=false;ui.restore=null;ui.backup=makeCode();S.backupAt=Date.now();save();render();
+  "news-ok"(){S.news=5;save();render()},
+  "news-backup"(){S.news=5;S.tab="stats";ui.panel=null;ui.goalEdit=false;ui.restore=null;ui.backup=makeCode();S.backupAt=Date.now();save();render();
     const el=$("#sec-backup");if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:"smooth",block:"start"}))}
 };
 document.addEventListener("click",e=>{
